@@ -160,7 +160,8 @@ export default function MaintenancePage() {
                 <p className="text-sm font-medium">Total Maintenance Cost: {formatCurrency(totalCost)}</p>
             </div>
 
-            <Card>
+            {/* Desktop Table View */}
+            <Card className="hidden md:block">
                 <CardContent className="p-0">
                     <Table>
                         <TableHeader>
@@ -210,6 +211,59 @@ export default function MaintenancePage() {
                     </Table>
                 </CardContent>
             </Card>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3">
+                {filteredRecords.length === 0 ? (
+                    <Card>
+                        <CardContent className="p-8 text-center text-muted-foreground">
+                            No records found.
+                        </CardContent>
+                    </Card>
+                ) : (
+                    filteredRecords.map((record) => {
+                        const vehicle = getVehicleById(record.vehicleId);
+                        return (
+                            <Card key={record.id}>
+                                <CardContent className="p-4">
+                                    <div className="mb-3">
+                                        <p className="font-medium text-sm">{vehicle ? `${vehicle.brand} ${vehicle.model}` : "Unknown"}</p>
+                                        <p className="text-xs text-muted-foreground">{vehicle?.registrationNumber}</p>
+                                    </div>
+                                    <div className="space-y-2 mb-3">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-xs text-muted-foreground">Service Type</span>
+                                            <Badge variant="secondary" className="font-normal">{record.serviceType}</Badge>
+                                        </div>
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-muted-foreground">Date</span>
+                                            <span className="font-medium">
+                                                {new Date(record.serviceDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-muted-foreground">Vendor</span>
+                                            <span className="font-medium">{record.vendor}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-muted-foreground">Cost</span>
+                                            <span className="font-semibold">{formatCurrency(record.cost)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-muted-foreground">Next Service</span>
+                                            <span className="font-medium">
+                                                {record.nextServiceDate
+                                                    ? new Date(record.nextServiceDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+                                                    : "—"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        );
+                    })
+                )}
+            </div>
 
             {/* Add Record Dialog */}
             <Dialog open={addOpen} onOpenChange={setAddOpen}>

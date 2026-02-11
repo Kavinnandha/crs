@@ -105,7 +105,8 @@ export default function PaymentsPage() {
                 </CardContent>
             </Card>
 
-            <Card>
+            {/* Desktop Table */}
+            <Card className="hidden md:block">
                 <CardContent className="p-0">
                     <Table>
                         <TableHeader>
@@ -153,6 +154,58 @@ export default function PaymentsPage() {
                     </Table>
                 </CardContent>
             </Card>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3">
+                {filteredPayments.length === 0 ? (
+                    <Card>
+                        <CardContent className="p-8 text-center text-muted-foreground">
+                            No payments found.
+                        </CardContent>
+                    </Card>
+                ) : (
+                    filteredPayments.map((payment) => {
+                        const booking = getBookingById(payment.bookingId);
+                        const customer = booking ? getCustomerById(booking.customerId) : undefined;
+                        return (
+                            <Card key={payment.id}>
+                                <CardContent className="p-4">
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div className="flex-1">
+                                            <p className="font-mono text-xs text-muted-foreground mb-1">
+                                                {payment.transactionId || "—"}
+                                            </p>
+                                            <p className="font-medium text-sm">{customer?.name || "—"}</p>
+                                            <p className="font-mono text-xs text-muted-foreground">
+                                                {payment.bookingId.toUpperCase()}
+                                            </p>
+                                        </div>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setSelectedPaymentId(payment.id); setInvoiceOpen(true); }}>
+                                            <FileText className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                                        <div>
+                                            <p className="text-muted-foreground">Mode</p>
+                                            <p className="font-medium">{payment.mode}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-muted-foreground">Date</p>
+                                            <p className="font-medium">
+                                                {payment.paidAt ? new Date(payment.paidAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center pt-2 border-t">
+                                        <StatusBadge status={payment.status} variant="payment" />
+                                        <p className="font-semibold">{formatCurrency(payment.amount)}</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        );
+                    })
+                )}
+            </div>
 
             {/* Invoice Dialog */}
             <Dialog open={invoiceOpen} onOpenChange={setInvoiceOpen}>

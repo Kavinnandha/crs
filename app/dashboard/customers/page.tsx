@@ -99,7 +99,8 @@ export default function CustomersPage() {
                 </p>
             </div>
 
-            <Card>
+            {/* Desktop Table */}
+            <Card className="hidden md:block">
                 <CardContent className="p-0">
                     <Table>
                         <TableHeader>
@@ -155,6 +156,57 @@ export default function CustomersPage() {
                     </Table>
                 </CardContent>
             </Card>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3">
+                {filteredCustomers.length === 0 ? (
+                    <Card>
+                        <CardContent className="p-8 text-center text-muted-foreground">
+                            No customers found.
+                        </CardContent>
+                    </Card>
+                ) : (
+                    filteredCustomers.map((customer) => (
+                        <Card key={customer.id}>
+                            <CardContent className="p-4">
+                                <div className="flex items-start gap-3 mb-3">
+                                    <Avatar className="h-10 w-10 shrink-0">
+                                        <AvatarFallback className="text-sm bg-primary/10 text-primary">
+                                            {getInitials(customer.name)}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-sm">{customer.name}</p>
+                                        <p className="text-xs text-muted-foreground truncate">{customer.email}</p>
+                                        <div className="mt-2">
+                                            <StatusBadge status={customer.verificationStatus} variant="verification" />
+                                        </div>
+                                    </div>
+                                    <Button variant="ghost" size="sm" onClick={() => openProfile(customer)}>
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div>
+                                        <p className="text-muted-foreground">Phone</p>
+                                        <p className="font-medium">{customer.phone}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-muted-foreground">License No.</p>
+                                        <p className="font-mono font-medium text-xs">{customer.drivingLicenseNumber}</p>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <p className="text-muted-foreground">Joined</p>
+                                        <p className="font-medium">
+                                            {new Date(customer.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
+            </div>
 
             {/* Profile Dialog */}
             <Dialog open={profileOpen} onOpenChange={setProfileOpen}>

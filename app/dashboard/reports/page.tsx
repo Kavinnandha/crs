@@ -137,8 +137,8 @@ export default function ReportsPage() {
                 </CardContent>
             </Card>
 
-            {/* Tables */}
-            <div className="grid gap-4 lg:grid-cols-2">
+            {/* Tables - Desktop */}
+            <div className="hidden md:grid gap-4 lg:grid-cols-2">
                 {/* Most Rented */}
                 <Card>
                     <CardHeader>
@@ -178,6 +178,69 @@ export default function ReportsPage() {
                 </Card>
 
                 {/* Idle Vehicles */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base font-semibold flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4" /> Idle Vehicles
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {idleVehicles.length === 0 ? (
+                            <p className="text-sm text-muted-foreground py-4 text-center">All vehicles have been booked at least once.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {idleVehicles.map((v) => (
+                                    <div key={v.id} className="flex items-center justify-between rounded-lg border p-3">
+                                        <div>
+                                            <p className="text-sm font-medium">{v.brand} {v.model}</p>
+                                            <p className="text-xs text-muted-foreground">{v.registrationNumber} • {v.category}</p>
+                                        </div>
+                                        <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
+                                            No bookings
+                                        </Badge>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+                {/* Most Rented Mobile */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base font-semibold flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4" /> Most Rented Vehicles
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {topVehicles.map((v, i) => (
+                            <div key={v.id} className="flex items-start gap-3 rounded-lg border p-3">
+                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm shrink-0">
+                                    {i + 1}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium">{v.brand} {v.model}</p>
+                                    <p className="text-xs text-muted-foreground">{v.category}</p>
+                                    <div className="flex items-center gap-3 mt-2">
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-xs text-muted-foreground">Bookings:</span>
+                                            <Badge variant="secondary" className="text-xs">{v.bookingCount}</Badge>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-xs text-muted-foreground">Revenue:</span>
+                                            <span className="text-xs font-semibold">{formatCurrency(v.revenue)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+
+                {/* Idle Vehicles Mobile */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-base font-semibold flex items-center gap-2">

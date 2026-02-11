@@ -214,8 +214,8 @@ export default function VehiclesPage() {
                 </p>
             </div>
 
-            {/* Table */}
-            <Card>
+            {/* Desktop Table */}
+            <Card className="hidden md:block">
                 <CardContent className="p-0">
                     <Table>
                         <TableHeader>
@@ -292,6 +292,79 @@ export default function VehiclesPage() {
                     </Table>
                 </CardContent>
             </Card>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3">
+                {filteredVehicles.length === 0 ? (
+                    <Card>
+                        <CardContent className="p-8 text-center text-muted-foreground">
+                            No vehicles found matching your criteria.
+                        </CardContent>
+                    </Card>
+                ) : (
+                    filteredVehicles.map((vehicle) => (
+                        <Card key={vehicle.id}>
+                            <CardContent className="p-4">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex items-center gap-3 flex-1">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted shrink-0">
+                                            <Car className="h-5 w-5 text-muted-foreground" />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-sm">{vehicle.brand} {vehicle.model}</p>
+                                            <p className="text-xs text-muted-foreground">{vehicle.year} • {vehicle.color}</p>
+                                            <Badge variant="secondary" className="font-normal text-xs mt-1">{vehicle.category}</Badge>
+                                        </div>
+                                    </div>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => { setSelectedVehicle(vehicle); setViewOpen(true); }}>
+                                                <Eye className="mr-2 h-4 w-4" /> View Details
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => openEditForm(vehicle)}>
+                                                <Pencil className="mr-2 h-4 w-4" /> Edit
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                                className="text-destructive"
+                                                onClick={() => { setSelectedVehicle(vehicle); setDeleteOpen(true); }}
+                                            >
+                                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                                    <div>
+                                        <p className="text-muted-foreground">Registration</p>
+                                        <p className="font-mono font-medium">{vehicle.registrationNumber}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-muted-foreground">Transmission</p>
+                                        <p className="font-medium">{vehicle.transmission}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-muted-foreground">Fuel Type</p>
+                                        <p className="font-medium">{vehicle.fuelType}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-muted-foreground">Price/Day</p>
+                                        <p className="font-semibold">{formatCurrency(vehicle.pricePerDay)}</p>
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-center pt-2 border-t">
+                                    <StatusBadge status={vehicle.status} variant="vehicle" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
+            </div>
 
             {/* Add/Edit Dialog */}
             <Dialog open={formOpen} onOpenChange={setFormOpen}>
