@@ -29,6 +29,16 @@ import { Vehicle, VehicleCategory, FuelType, TransmissionType, VehicleStatus } f
 type SortKey = "brand" | "year" | "pricePerDay" | "status" | "category";
 type SortDir = "asc" | "desc";
 
+// SortHeader component defined outside to avoid recreation during render
+const SortHeader = ({ label, sortKeyName, onClick }: { label: string; sortKeyName: SortKey; onClick: (key: SortKey) => void }) => (
+    <TableHead>
+        <button onClick={() => onClick(sortKeyName)} className="flex items-center gap-1 hover:text-foreground transition-colors">
+            {label}
+            <ArrowUpDown className="h-3.5 w-3.5" />
+        </button>
+    </TableHead>
+);
+
 export default function VehiclesPage() {
     const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
     const [search, setSearch] = useState("");
@@ -76,15 +86,6 @@ export default function VehiclesPage() {
         if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
         else { setSortKey(key); setSortDir("asc"); }
     };
-
-    const SortHeader = ({ label, sortKeyName }: { label: string; sortKeyName: SortKey }) => (
-        <TableHead>
-            <button onClick={() => toggleSort(sortKeyName)} className="flex items-center gap-1 hover:text-foreground transition-colors">
-                {label}
-                <ArrowUpDown className="h-3.5 w-3.5" />
-            </button>
-        </TableHead>
-    );
 
     const validateForm = (): boolean => {
         const errors: Record<string, string> = {};
@@ -219,13 +220,13 @@ export default function VehiclesPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <SortHeader label="Vehicle" sortKeyName="brand" />
-                                <SortHeader label="Category" sortKeyName="category" />
+                                <SortHeader label="Vehicle" sortKeyName="brand" onClick={toggleSort} />
+                                <SortHeader label="Category" sortKeyName="category" onClick={toggleSort} />
                                 <TableHead>Registration</TableHead>
                                 <TableHead>Fuel</TableHead>
                                 <TableHead>Transmission</TableHead>
-                                <SortHeader label="Price/Day" sortKeyName="pricePerDay" />
-                                <SortHeader label="Status" sortKeyName="status" />
+                                <SortHeader label="Price/Day" sortKeyName="pricePerDay" onClick={toggleSort} />
+                                <SortHeader label="Status" sortKeyName="status" onClick={toggleSort} />
                                 <TableHead className="w-[50px]" />
                             </TableRow>
                         </TableHeader>

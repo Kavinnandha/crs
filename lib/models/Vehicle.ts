@@ -1,7 +1,7 @@
 
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
-export interface IVehicle extends Document {
+export interface IVehicle extends Omit<Document, 'model'> {
     make: string;
     model: string;
     year: number;
