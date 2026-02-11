@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from "react";
 import {
-    CalendarDays, Plus, Search, Clock, CalendarPlus, MoreHorizontal,
-    Eye, Pencil, XCircle,
+    CalendarDays, Plus, Search, CalendarPlus, MoreHorizontal,
+    Eye, XCircle,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatusBadge } from "@/components/tables/status-badge";
@@ -88,7 +88,7 @@ export default function BookingsPage() {
                 v.status !== "Maintenance" &&
                 !isVehicleBookedInRange(v.id, formData.pickupDate!, formData.dropDate!)
         );
-    }, [formData.pickupDate, formData.dropDate, allBookings]);
+    }, [formData.pickupDate, formData.dropDate, isVehicleBookedInRange]);
 
     const openCreateForm = () => {
         setFormData({ status: "Reserved" });

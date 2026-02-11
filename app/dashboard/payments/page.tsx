@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import {
     CreditCard, Search, IndianRupee, Clock, CheckCircle2,
-    FileText, Eye,
+    FileText,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/charts/stat-card";

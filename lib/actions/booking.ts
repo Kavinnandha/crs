@@ -11,8 +11,9 @@ export async function createBooking(data: Partial<IBooking>) {
         const booking = await Booking.create(data);
         revalidatePath('/bookings');
         return { success: true, data: JSON.parse(JSON.stringify(booking)) };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'An error occurred';
+        return { success: false, error: message };
     }
 }
 
@@ -24,8 +25,9 @@ export async function getBookings() {
             .populate('vehicle')
             .sort({ createdAt: -1 });
         return { success: true, data: JSON.parse(JSON.stringify(bookings)) };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'An error occurred';
+        return { success: false, error: message };
     }
 }
 
@@ -39,8 +41,9 @@ export async function getBookingById(id: string) {
             return { success: false, error: 'Booking not found' };
         }
         return { success: true, data: JSON.parse(JSON.stringify(booking)) };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'An error occurred';
+        return { success: false, error: message };
     }
 }
 
@@ -57,8 +60,9 @@ export async function updateBooking(id: string, data: Partial<IBooking>) {
         revalidatePath('/bookings');
         revalidatePath(`/bookings/${id}`);
         return { success: true, data: JSON.parse(JSON.stringify(booking)) };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'An error occurred';
+        return { success: false, error: message };
     }
 }
 
@@ -71,7 +75,8 @@ export async function deleteBooking(id: string) {
         }
         revalidatePath('/bookings');
         return { success: true, message: 'Booking deleted successfully' };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'An error occurred';
+        return { success: false, error: message };
     }
 }

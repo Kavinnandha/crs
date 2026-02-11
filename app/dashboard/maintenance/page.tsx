@@ -38,6 +38,7 @@ export default function MaintenancePage() {
     const [addOpen, setAddOpen] = useState(false);
     const [formData, setFormData] = useState<Partial<MaintenanceRecord>>({});
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+    const [currentTime] = useState(() => Date.now()); // Initialize once during mount
 
     const filteredRecords = useMemo(() => {
         let result = [...records];
@@ -60,7 +61,7 @@ export default function MaintenancePage() {
     }, [records, search, serviceFilter]);
 
     const upcomingServices = records
-        .filter((r) => new Date(r.nextServiceDate) <= new Date(Date.now() + 30 * 86400000))
+        .filter((r) => new Date(r.nextServiceDate) <= new Date(currentTime + 30 * 86400000))
         .sort((a, b) => new Date(a.nextServiceDate).getTime() - new Date(b.nextServiceDate).getTime());
 
     const totalCost = records.reduce((s, r) => s + r.cost, 0);
@@ -109,7 +110,7 @@ export default function MaintenancePage() {
                             {upcomingServices.map((r) => {
                                 const v = getVehicleById(r.vehicleId);
                                 const daysUntil = Math.ceil(
-                                    (new Date(r.nextServiceDate).getTime() - Date.now()) / 86400000
+                                    (new Date(r.nextServiceDate).getTime() - currentTime) / 86400000
                                 );
                                 return (
                                     <div key={r.id} className="flex items-center gap-3 rounded-lg border bg-card p-3">

@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import {
     Car, CarFront, CalendarCheck, IndianRupee, Clock, Users,
 } from "lucide-react";
@@ -18,6 +21,8 @@ import {
 import { LayoutDashboard } from "lucide-react";
 
 export default function OverviewPage() {
+    const [currentTime] = useState(() => Date.now()); // Initialize once during mount
+    
     const recentBookings = bookings
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 5);
@@ -140,7 +145,7 @@ export default function OverviewPage() {
                             const customer = getCustomerById(booking.customerId);
                             const vehicle = getVehicleById(booking.vehicleId);
                             const daysLeft = Math.ceil(
-                                (new Date(booking.dropDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+                                (new Date(booking.dropDate).getTime() - currentTime) / (1000 * 60 * 60 * 24)
                             );
                             return (
                                 <div
