@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
     sidebarCollapsed: boolean;
@@ -23,14 +24,11 @@ interface HeaderProps {
 export function Header({ sidebarCollapsed, onMobileMenuToggle }: HeaderProps) {
     return (
         <header
-            className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card/80 backdrop-blur-sm px-4 sm:px-6 transition-all duration-300 md:ml-[68px] lg:ml-[260px]"
-            style={{
-                marginLeft: typeof window !== 'undefined' && window.innerWidth >= 1024 
-                    ? (sidebarCollapsed ? "68px" : "260px") 
-                    : typeof window !== 'undefined' && window.innerWidth >= 768 
-                    ? "68px" 
-                    : "0",
-            }}
+            className={cn(
+                "sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card/80 backdrop-blur-sm px-4 sm:px-6 transition-all duration-300",
+                "md:ml-[68px]",
+                sidebarCollapsed ? "lg:ml-[68px]" : "lg:ml-[260px]"
+            )}
         >
             {/* Mobile Menu Button */}
             <Button 

@@ -33,8 +33,8 @@ export function ResponsiveTable({
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    {headers.map((header, idx) => (
-                                        <TableHead key={idx}>{header}</TableHead>
+                                    {headers.map((header) => (
+                                        <TableHead key={header}>{header}</TableHead>
                                     ))}
                                 </TableRow>
                             </TableHeader>
