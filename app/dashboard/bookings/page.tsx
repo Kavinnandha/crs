@@ -200,7 +200,8 @@ export default function BookingsPage() {
                 {filteredBookings.length} booking{filteredBookings.length !== 1 ? "s" : ""}
             </p>
 
-            <Card>
+            {/* Desktop Table View */}
+            <Card className="hidden md:block">
                 <CardContent className="p-0">
                     <Table>
                         <TableHeader>
@@ -282,6 +283,82 @@ export default function BookingsPage() {
                     </Table>
                 </CardContent>
             </Card>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3">
+                {filteredBookings.length === 0 ? (
+                    <Card>
+                        <CardContent className="p-8 text-center text-muted-foreground">
+                            No bookings found.
+                        </CardContent>
+                    </Card>
+                ) : (
+                    filteredBookings.map((booking) => {
+                        const customer = getCustomerById(booking.customerId);
+                        const vehicle = getVehicleById(booking.vehicleId);
+                        return (
+                            <Card key={booking.id}>
+                                <CardContent className="p-4">
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div className="flex-1">
+                                            <p className="font-mono text-xs font-medium text-muted-foreground mb-1">
+                                                {booking.id.toUpperCase()}
+                                            </p>
+                                            <p className="font-medium text-sm">{customer?.name || "—"}</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {vehicle ? `${vehicle.brand} ${vehicle.model}` : "—"}
+                                            </p>
+                                        </div>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onClick={() => { setSelectedBooking(booking); setViewOpen(true); }}>
+                                                    <Eye className="mr-2 h-4 w-4" /> View Details
+                                                </DropdownMenuItem>
+                                                {(booking.status === "Active" || booking.status === "Reserved") && (
+                                                    <DropdownMenuItem onClick={() => { setSelectedBooking(booking); setExtendDays(1); setExtendOpen(true); }}>
+                                                        <CalendarPlus className="mr-2 h-4 w-4" /> Extend Rental
+                                                    </DropdownMenuItem>
+                                                )}
+                                                {booking.status !== "Cancelled" && booking.status !== "Completed" && (
+                                                    <>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem className="text-destructive" onClick={() => handleCancel(booking.id)}>
+                                                            <XCircle className="mr-2 h-4 w-4" /> Cancel
+                                                        </DropdownMenuItem>
+                                                    </>
+                                                )}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                                        <div>
+                                            <p className="text-muted-foreground">Pickup</p>
+                                            <p className="font-medium">
+                                                {new Date(booking.pickupDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-muted-foreground">Drop</p>
+                                            <p className="font-medium">
+                                                {new Date(booking.dropDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <StatusBadge status={booking.status} variant="booking" />
+                                        <p className="font-semibold">{formatCurrency(booking.totalAmount)}</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        );
+                    })
+                )}
+            </div>
 
             {/* Create Booking Dialog */}
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>

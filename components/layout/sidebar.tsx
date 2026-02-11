@@ -10,6 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+    Sheet,
+    SheetContent,
+} from "@/components/ui/sheet";
+import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
@@ -29,29 +33,26 @@ const navItems = [
 interface SidebarProps {
     collapsed: boolean;
     onToggle: () => void;
+    mobileMenuOpen: boolean;
+    onMobileMenuChange: (open: boolean) => void;
 }
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed, onToggle, mobileMenuOpen, onMobileMenuChange }: SidebarProps) {
     const pathname = usePathname();
 
-    return (
-        <aside
-            className={cn(
-                "fixed left-0 top-0 z-40 h-screen border-r border-border bg-card transition-all duration-300",
-                collapsed ? "w-[68px]" : "w-[260px]"
-            )}
-        >
+    const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => (
+        <>
             {/* Logo */}
             <div className="flex h-16 items-center justify-between border-b border-border px-4">
-                {!collapsed && (
-                    <Link href="/dashboard/overview" className="flex items-center gap-2">
+                {(!collapsed || isMobile) && (
+                    <Link href="/dashboard/overview" className="flex items-center gap-2" onClick={() => isMobile && onMobileMenuChange(false)}>
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                             <Car className="h-4 w-4 text-primary-foreground" />
                         </div>
                         <span className="text-lg font-bold tracking-tight">SpeedWheels</span>
                     </Link>
                 )}
-                {collapsed && (
+                {collapsed && !isMobile && (
                     <Link href="/dashboard/overview" className="mx-auto">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                             <Car className="h-4 w-4 text-primary-foreground" />
@@ -69,7 +70,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                             (item.href !== "/dashboard/overview" && pathname.startsWith(item.href));
                         const Icon = item.icon;
 
-                        if (collapsed) {
+                        if (collapsed && !isMobile) {
                             return (
                                 <Tooltip key={item.href} delayDuration={0}>
                                     <TooltipTrigger asChild>
@@ -96,6 +97,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                onClick={() => isMobile && onMobileMenuChange(false)}
                                 className={cn(
                                     "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                                     isActive
@@ -111,24 +113,49 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 </nav>
             </ScrollArea>
 
-            {/* Toggle */}
-            <div className="absolute bottom-0 w-full border-t border-border p-3">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onToggle}
-                    className={cn("w-full", collapsed && "px-0")}
-                >
-                    {collapsed ? (
-                        <ChevronRight className="h-4 w-4" />
-                    ) : (
-                        <>
-                            <ChevronLeft className="h-4 w-4 mr-2" />
-                            Collapse
-                        </>
-                    )}
-                </Button>
-            </div>
-        </aside>
+            {/* Toggle - only on desktop */}
+            {!isMobile && (
+                <div className="absolute bottom-0 w-full border-t border-border p-3">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onToggle}
+                        className={cn("w-full", collapsed && "px-0")}
+                    >
+                        {collapsed ? (
+                            <ChevronRight className="h-4 w-4" />
+                        ) : (
+                            <>
+                                <ChevronLeft className="h-4 w-4 mr-2" />
+                                Collapse
+                            </>
+                        )}
+                    </Button>
+                </div>
+            )}
+        </>
+    );
+
+    return (
+        <>
+            {/* Desktop Sidebar */}
+            <aside
+                className={cn(
+                    "fixed left-0 top-0 z-40 h-screen border-r border-border bg-card transition-all duration-300 hidden md:block",
+                    "lg:block",
+                    collapsed ? "lg:w-[68px]" : "lg:w-[260px]",
+                    "md:w-[68px]"
+                )}
+            >
+                <SidebarContent isMobile={false} />
+            </aside>
+
+            {/* Mobile Sidebar */}
+            <Sheet open={mobileMenuOpen} onOpenChange={onMobileMenuChange}>
+                <SheetContent side="left" className="w-[260px] p-0">
+                    <SidebarContent isMobile={true} />
+                </SheetContent>
+            </Sheet>
+        </>
     );
 }

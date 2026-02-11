@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, LogOut } from "lucide-react";
+import { Bell, Search, LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -17,18 +17,33 @@ import { Separator } from "@/components/ui/separator";
 
 interface HeaderProps {
     sidebarCollapsed: boolean;
+    onMobileMenuToggle: () => void;
 }
 
-export function Header({ sidebarCollapsed }: HeaderProps) {
+export function Header({ sidebarCollapsed, onMobileMenuToggle }: HeaderProps) {
     return (
         <header
-            className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card/80 backdrop-blur-sm px-6 transition-all duration-300"
+            className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card/80 backdrop-blur-sm px-4 sm:px-6 transition-all duration-300 md:ml-[68px] lg:ml-[260px]"
             style={{
-                marginLeft: sidebarCollapsed ? "68px" : "260px",
+                marginLeft: typeof window !== 'undefined' && window.innerWidth >= 1024 
+                    ? (sidebarCollapsed ? "68px" : "260px") 
+                    : typeof window !== 'undefined' && window.innerWidth >= 768 
+                    ? "68px" 
+                    : "0",
             }}
         >
+            {/* Mobile Menu Button */}
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                className="md:hidden h-9 w-9"
+                onClick={onMobileMenuToggle}
+            >
+                <Menu className="h-5 w-5" />
+            </Button>
+
             {/* Search */}
-            <div className="relative w-full max-w-sm">
+            <div className="relative w-full max-w-sm hidden sm:block">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                     placeholder="Search vehicles, customers, bookings..."
@@ -36,7 +51,7 @@ export function Header({ sidebarCollapsed }: HeaderProps) {
                 />
             </div>
 
-            <div className="ml-auto flex items-center gap-3">
+            <div className="ml-auto flex items-center gap-2 sm:gap-3">
                 {/* Notifications */}
                 <Button variant="ghost" size="icon" className="relative h-9 w-9">
                     <Bell className="h-4 w-4" />
@@ -45,7 +60,7 @@ export function Header({ sidebarCollapsed }: HeaderProps) {
                     </Badge>
                 </Button>
 
-                <Separator orientation="vertical" className="h-6" />
+                <Separator orientation="vertical" className="h-6 hidden sm:block" />
 
                 {/* Admin Menu */}
                 <DropdownMenu>
@@ -56,7 +71,7 @@ export function Header({ sidebarCollapsed }: HeaderProps) {
                                     AD
                                 </AvatarFallback>
                             </Avatar>
-                            <div className="hidden md:flex flex-col items-start">
+                            <div className="hidden lg:flex flex-col items-start">
                                 <span className="text-sm font-medium leading-none">Admin</span>
                                 <span className="text-[11px] text-muted-foreground leading-none mt-0.5">
                                     admin@speedwheels.in
