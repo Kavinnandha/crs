@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -23,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { vehicles as initialVehicles, formatCurrency } from "@/lib/mock-data";
+import { formatCurrency } from "@/lib/utils";
 import { Vehicle, VehicleCategory, FuelType, TransmissionType, VehicleStatus } from "@/types";
 
 type SortKey = "brand" | "year" | "pricePerDay" | "status" | "category";
@@ -39,7 +40,11 @@ const SortHeader = ({ label, sortKeyName, onClick }: { label: string; sortKeyNam
     </TableHead>
 );
 
-export default function VehiclesPage() {
+interface VehiclesClientProps {
+    initialVehicles: Vehicle[];
+}
+
+export default function VehiclesClient({ initialVehicles }: VehiclesClientProps) {
     const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("all");

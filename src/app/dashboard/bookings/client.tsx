@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -26,13 +27,16 @@ import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem,
     DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import {
-    bookings as initialBookings, customers, vehicles, formatCurrency,
-    getCustomerById, getVehicleById,
-} from "@/lib/mock-data";
-import { Booking, BookingStatus } from "@/types";
+import { formatCurrency } from "@/lib/utils";
+import { Booking, BookingStatus, Customer, Vehicle } from "@/types";
 
-export default function BookingsPage() {
+interface BookingsClientProps {
+    initialBookings: Booking[];
+    customers: Customer[];
+    vehicles: Vehicle[];
+}
+
+export default function BookingsClient({ initialBookings, customers, vehicles }: BookingsClientProps) {
     const [allBookings, setAllBookings] = useState<Booking[]>(initialBookings);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -43,6 +47,12 @@ export default function BookingsPage() {
     const [formData, setFormData] = useState<Partial<Booking>>({});
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [extendDays, setExtendDays] = useState(1);
+
+    const vehicleMap = useMemo(() => new Map(vehicles.map(v => [v.id, v])), [vehicles]);
+    const customerMap = useMemo(() => new Map(customers.map(c => [c.id, c])), [customers]);
+
+    const getCustomerById = (id: string) => customerMap.get(id);
+    const getVehicleById = (id: string) => vehicleMap.get(id);
 
     const filteredBookings = useMemo(() => {
         let result = [...allBookings];
@@ -65,7 +75,7 @@ export default function BookingsPage() {
         return result.sort(
             (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-    }, [allBookings, search, statusFilter]);
+    }, [allBookings, search, statusFilter, customerMap, vehicleMap]);
 
     // Check for double booking
     const isVehicleBookedInRange = (vehicleId: string, pickup: string, drop: string, excludeId?: string) => {
@@ -88,7 +98,7 @@ export default function BookingsPage() {
                 v.status !== "Maintenance" &&
                 !isVehicleBookedInRange(v.id, formData.pickupDate!, formData.dropDate!)
         );
-    }, [formData.pickupDate, formData.dropDate, isVehicleBookedInRange]);
+    }, [formData.pickupDate, formData.dropDate, isVehicleBookedInRange, vehicles]);
 
     const openCreateForm = () => {
         setFormData({ status: "Reserved" });

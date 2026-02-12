@@ -4,9 +4,12 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { vehicleUtilization } from "@/lib/mock-data";
 
-export function UtilizationChart() {
+interface UtilizationChartProps {
+    data: any[];
+}
+
+export function UtilizationChart({ data }: UtilizationChartProps) {
     return (
         <Card>
             <CardHeader>
@@ -14,7 +17,7 @@ export function UtilizationChart() {
             </CardHeader>
             <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={vehicleUtilization} layout="vertical">
+                    <BarChart data={data} layout="vertical">
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis
                             type="number"

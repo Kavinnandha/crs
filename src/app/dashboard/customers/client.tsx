@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -20,19 +21,31 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-    customers as initialCustomers, getBookingsByCustomerId, getVehicleById, formatCurrency,
-} from "@/lib/mock-data";
-import { Customer } from "@/types";
+import { formatCurrency } from "@/lib/utils";
+import { Customer, Booking, Vehicle } from "@/types";
 
-export default function CustomersPage() {
+interface CustomersClientProps {
+    customers: Customer[];
+    bookings: Booking[];
+    vehicles: Vehicle[];
+}
+
+export default function CustomersClient({ customers, bookings, vehicles }: CustomersClientProps) {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [profileOpen, setProfileOpen] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
+    const vehicleMap = useMemo(() => new Map(vehicles.map(v => [v.id, v])), [vehicles]);
+
+    const getBookingsByCustomerId = (customerId: string) => {
+        return bookings.filter(b => b.customerId === customerId);
+    };
+
+    const getVehicleById = (id: string) => vehicleMap.get(id);
+
     const filteredCustomers = useMemo(() => {
-        let result = [...initialCustomers];
+        let result = [...customers];
         if (search) {
             const q = search.toLowerCase();
             result = result.filter(
@@ -47,7 +60,7 @@ export default function CustomersPage() {
             result = result.filter((c) => c.verificationStatus === statusFilter);
         }
         return result;
-    }, [search, statusFilter]);
+    }, [search, statusFilter, customers]);
 
     const openProfile = (customer: Customer) => {
         setSelectedCustomer(customer);

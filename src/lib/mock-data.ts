@@ -1,7 +1,7 @@
 import {
     Vehicle, Customer, Booking, Payment, MaintenanceRecord,
     BusinessSettings, DashboardStats, MonthlyRevenue, VehicleUtilization,
-} from "@/types";
+} from "../types";
 
 // ==========================================
 // VEHICLES

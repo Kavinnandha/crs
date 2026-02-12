@@ -4,9 +4,12 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { monthlyRevenue } from "@/lib/mock-data";
 
-export function RevenueChart() {
+interface RevenueChartProps {
+    data: any[];
+}
+
+export function RevenueChart({ data }: RevenueChartProps) {
     return (
         <Card>
             <CardHeader>
@@ -14,7 +17,7 @@ export function RevenueChart() {
             </CardHeader>
             <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={monthlyRevenue}>
+                    <BarChart data={data}>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis
                             dataKey="month"

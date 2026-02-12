@@ -17,13 +17,19 @@ export default function VerifyPage() {
         // 1. Test Vehicle
         addLog('--- Testing Vehicle ---');
         const vehicleRes = await createVehicle({
-            make: 'Toyota',
+            id: `V-${Date.now()}`,
+            brand: 'Toyota',
             model: 'Corolla',
             year: 2024,
-            licensePlate: `ABC-${Math.floor(Math.random() * 10000)}`,
-            dailyRate: 50,
+            category: 'Sedan',
+            registrationNumber: `ABC-${Math.floor(Math.random() * 10000)}`,
+            pricePerDay: 50,
             fuelType: 'petrol',
             transmission: 'automatic',
+            status: 'Available',
+            imageUrl: 'https://placehold.co/600x400',
+            mileage: 0,
+            color: 'White',
         });
         addLog(`Create Vehicle: ${JSON.stringify(vehicleRes)}`);
 
@@ -40,9 +46,11 @@ export default function VerifyPage() {
         // 2. Test Customer
         addLog('--- Testing Customer ---');
         const customerRes = await createCustomer({
+            id: `C-${Date.now()}`,
             name: 'John Doe',
             email: `john-${Math.floor(Math.random() * 10000)}@example.com`,
             phone: '1234567890',
+            drivingLicenseNumber: `DL-${Math.floor(Math.random() * 100000)}`,
         });
         addLog(`Create Customer: ${JSON.stringify(customerRes)}`);
 
@@ -59,12 +67,13 @@ export default function VerifyPage() {
         // 3. Test Booking
         addLog('--- Testing Booking ---');
         const bookingRes = await createBooking({
-            customer: customerId,
-            vehicle: vehicleId,
-            startDate: new Date(),
-            endDate: new Date(Date.now() + 86400000), // +1 day
-            totalPrice: 100,
-            status: 'confirmed',
+            id: `B-${Date.now()}`,
+            customerId: customerId,
+            vehicleId: vehicleId,
+            pickupDate: new Date(),
+            dropDate: new Date(Date.now() + 86400000), // +1 day
+            totalAmount: 100,
+            status: 'Confirmed',
         });
         addLog(`Create Booking: ${JSON.stringify(bookingRes)}`);
 

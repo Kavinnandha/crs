@@ -1,8 +1,7 @@
-"use client";
 
-import { useState } from "react";
 import {
     Car, CarFront, CalendarCheck, IndianRupee, Clock, Users,
+    LayoutDashboard
 } from "lucide-react";
 import { StatCard } from "@/components/charts/stat-card";
 import { RevenueChart } from "@/components/charts/revenue-chart";
@@ -15,21 +14,33 @@ import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-    dashboardStats, bookings, formatCurrency,
-    getCustomerById, getVehicleById,
-} from "@/lib/mock-data";
-import { LayoutDashboard } from "lucide-react";
+    getDashboardStats, getBookings, getVehicles, getCustomers,
+    getMonthlyRevenue, getVehicleUtilization
+} from "@/lib/data";
+import { formatCurrency } from "@/lib/utils";
 
-export default function OverviewPage() {
-    const [currentTime] = useState(() => Date.now()); // Initialize once during mount
-    
+export default async function OverviewPage() {
+    const currentTime = Date.now();
+
+    const [stats, bookings, vehicles, customers, monthlyRevenue, vehicleUtilization] = await Promise.all([
+        getDashboardStats(),
+        getBookings(),
+        getVehicles(),
+        getCustomers(),
+        getMonthlyRevenue(),
+        getVehicleUtilization(),
+    ]);
+
+    const vehicleMap = new Map<string, any>(vehicles.map((v: any) => [v.id, v]));
+    const customerMap = new Map<string, any>(customers.map((c: any) => [c.id, c]));
+
     const recentBookings = bookings
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 5);
 
     const upcomingReturns = bookings
-        .filter((b) => b.status === "Active")
-        .sort((a, b) => new Date(a.dropDate).getTime() - new Date(b.dropDate).getTime())
+        .filter((b: any) => b.status === "Active")
+        .sort((a: any, b: any) => new Date(a.dropDate).getTime() - new Date(b.dropDate).getTime())
         .slice(0, 4);
 
     return (
@@ -44,40 +55,40 @@ export default function OverviewPage() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 mb-6">
                 <StatCard
                     title="Total Vehicles"
-                    value={dashboardStats.totalVehicles}
+                    value={stats.totalVehicles}
                     icon={Car}
                     trend={{ value: 8, positive: true }}
                     description="vs last month"
                 />
                 <StatCard
                     title="Available"
-                    value={dashboardStats.availableVehicles}
+                    value={stats.availableVehicles}
                     icon={CarFront}
                     description="ready to rent"
                 />
                 <StatCard
                     title="Active Rentals"
-                    value={dashboardStats.activeRentals}
+                    value={stats.activeRentals}
                     icon={CalendarCheck}
                     trend={{ value: 12, positive: true }}
                     description="vs last month"
                 />
                 <StatCard
                     title="Monthly Revenue"
-                    value={formatCurrency(dashboardStats.monthlyRevenue)}
+                    value={formatCurrency(stats.monthlyRevenue)}
                     icon={IndianRupee}
                     trend={{ value: 8, positive: true }}
                     description="vs last month"
                 />
                 <StatCard
                     title="Pending Payments"
-                    value={dashboardStats.pendingPayments}
+                    value={stats.pendingPayments}
                     icon={Clock}
                     description="require follow-up"
                 />
                 <StatCard
                     title="Total Customers"
-                    value={dashboardStats.totalCustomers}
+                    value={stats.totalCustomers}
                     icon={Users}
                     trend={{ value: 15, positive: true }}
                     description="vs last month"
@@ -86,8 +97,8 @@ export default function OverviewPage() {
 
             {/* Charts */}
             <div className="grid gap-4 lg:grid-cols-2 mb-6">
-                <RevenueChart />
-                <UtilizationChart />
+                <RevenueChart data={monthlyRevenue} />
+                <UtilizationChart data={vehicleUtilization} />
             </div>
 
             {/* Tables */}
@@ -109,9 +120,9 @@ export default function OverviewPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {recentBookings.map((booking) => {
-                                    const customer = getCustomerById(booking.customerId);
-                                    const vehicle = getVehicleById(booking.vehicleId);
+                                {recentBookings.map((booking: any) => {
+                                    const customer = customerMap.get(booking.customerId);
+                                    const vehicle = vehicleMap.get(booking.vehicleId);
                                     return (
                                         <TableRow key={booking.id}>
                                             <TableCell className="font-medium">
@@ -141,9 +152,9 @@ export default function OverviewPage() {
                         <CardTitle className="text-base font-semibold">Upcoming Returns</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {upcomingReturns.map((booking) => {
-                            const customer = getCustomerById(booking.customerId);
-                            const vehicle = getVehicleById(booking.vehicleId);
+                        {upcomingReturns.map((booking: any) => {
+                            const customer = customerMap.get(booking.customerId);
+                            const vehicle = vehicleMap.get(booking.vehicleId);
                             const daysLeft = Math.ceil(
                                 (new Date(booking.dropDate).getTime() - currentTime) / (1000 * 60 * 60 * 24)
                             );
