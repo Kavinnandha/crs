@@ -5,25 +5,30 @@ interface PageHeaderProps {
     description?: string;
     icon?: LucideIcon;
     children?: React.ReactNode;
+    breadcrumb?: string[];
+    filters?: React.ReactNode;
 }
 
-export function PageHeader({ title, description, icon: Icon, children }: PageHeaderProps) {
+export function PageHeader({ title, description, icon: Icon, children, breadcrumb, filters }: PageHeaderProps) {
     return (
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-6">
-            <div className="flex items-center gap-3">
-                {Icon && (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                        <Icon className="h-5 w-5 text-primary" />
+        <div className="mb-6">
+            <div className="flex items-center gap-4">
+                <div className="flex items-start gap-3">
+                    <div>
+                        <h1 className="hidden md:block text-2xl font-semibold text-[#1a1d2e] dark:text-white tracking-tight leading-tight">{title}</h1>
+                        {description && (
+                            <p className="hidden md:block text-sm text-[#94a3b8] mt-0.5 font-normal leading-relaxed">{description}</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Filters — placed inline to the right of the title */}
+                {filters && (
+                    <div className="ml-auto flex items-center gap-2">
+                        {filters}
                     </div>
                 )}
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-                    {description && (
-                        <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
-                    )}
-                </div>
             </div>
-            {children && <div className="flex items-center gap-2 mt-3 sm:mt-0">{children}</div>}
         </div>
     );
 }

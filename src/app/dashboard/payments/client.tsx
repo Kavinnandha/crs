@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
-    CreditCard, Search, IndianRupee, Clock, CheckCircle2,
+    IndianRupee, Clock, CheckCircle2,
     FileText, Plus, Pencil, Trash2, MoreHorizontal,
 } from "lucide-react";
+import { useDashboard } from "@/components/layout/dashboard-layout";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/charts/stat-card";
 import { StatusBadge } from "@/components/tables/status-badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -23,10 +23,11 @@ import {
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/utils";
-import { Payment, Booking, Customer, Vehicle, PaymentMode, PaymentStatus } from "@/types";
+import { Payment, Booking, Customer, Vehicle } from "@/types";
+import Link from "next/link";
+import { deletePayment } from "@/lib/actions";
 
 interface PaymentsClientProps {
     initialPayments: Payment[];
@@ -36,16 +37,18 @@ interface PaymentsClientProps {
 }
 
 export default function PaymentsClient({ initialPayments, bookings, customers, vehicles }: PaymentsClientProps) {
+    const { setHeaderAction } = useDashboard();
     const [paymentsList, setPaymentsList] = useState<Payment[]>(initialPayments);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [modeFilter, setModeFilter] = useState("all");
     const [invoiceOpen, setInvoiceOpen] = useState(false);
-    const [formOpen, setFormOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
-    const [formData, setFormData] = useState<Partial<Payment>>({});
-    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        setPaymentsList(initialPayments);
+    }, [initialPayments]);
 
     const bookingMap = useMemo(() => new Map(bookings.map(b => [b.id, b])), [bookings]);
     const customerMap = useMemo(() => new Map(customers.map(c => [c.id, c])), [customers]);
@@ -79,75 +82,70 @@ export default function PaymentsClient({ initialPayments, bookings, customers, v
         return result;
     }, [search, statusFilter, modeFilter, paymentsList, bookingMap, customerMap]);
 
-    const validateForm = (): boolean => {
-        const errors: Record<string, string> = {};
-        if (!formData.bookingId) errors.bookingId = "Booking is required";
-        if (!formData.amount || formData.amount <= 0) errors.amount = "Valid amount is required";
-        if (!formData.mode) errors.mode = "Payment mode is required";
-        if (!formData.status) errors.status = "Status is required";
+    // Inject action button into navbar
+    useEffect(() => {
+        setHeaderAction(
+            <Link href="/dashboard/payments/new">
+                <Button
+                    className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl h-10 px-5 shadow-sm shadow-[#7C3AED]/20 font-medium text-sm gap-2"
+                >
+                    <Plus className="h-4 w-4" /> Add Payment
+                </Button>
+            </Link>
+        );
+        return () => setHeaderAction(null);
+    }, [setHeaderAction]);
 
-        // Transaction ID required if paid
-        if ((formData.status === "Paid" || formData.status === "Partial") && !formData.transactionId?.trim()) {
-            errors.transactionId = "Transaction ID is required for paid payments";
-        }
-
-        setFormErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
-
-    const openAddForm = () => {
-        setSelectedPayment(null);
-        setFormData({
-            status: "Pending",
-            mode: "Cash",
-            paidAt: new Date().toISOString()
-        });
-        setFormErrors({});
-        setFormOpen(true);
-    };
-
-    const openEditForm = (payment: Payment) => {
-        setSelectedPayment(payment);
-        setFormData({ ...payment });
-        setFormErrors({});
-        setFormOpen(true);
-    };
-
-    const handleSave = () => {
-        if (!validateForm()) return;
-
+    const handleDelete = async () => {
         if (selectedPayment) {
-            setPaymentsList(prev => prev.map(p => p.id === selectedPayment.id ? { ...p, ...formData } as Payment : p));
-        } else {
-            const newPayment: Payment = {
-                id: `p${Date.now()}`,
-                bookingId: formData.bookingId!,
-                amount: formData.amount!,
-                mode: formData.mode as PaymentMode,
-                status: formData.status as PaymentStatus,
-                paidAt: formData.paidAt || new Date().toISOString(),
-                transactionId: formData.transactionId || `TXN${Date.now()}`,
-            };
-            setPaymentsList(prev => [newPayment, ...prev]);
+            try {
+                await deletePayment(selectedPayment.id);
+                // Optimistic update handled by page revalidation mostly, but locally:
+                setPaymentsList(prev => prev.filter(p => p.id !== selectedPayment.id));
+                setDeleteOpen(false);
+                setSelectedPayment(null);
+            } catch (e) {
+                console.error("Failed to delete", e);
+            }
         }
-        setFormOpen(false);
     };
 
-    const handleDelete = () => {
-        if (selectedPayment) {
-            setPaymentsList(prev => prev.filter(p => p.id !== selectedPayment.id));
-        }
-        setDeleteOpen(false);
-        setSelectedPayment(null);
-    };
+    // Filters component for inline rendering
+    const filtersContent = (
+        <div className="flex items-center gap-2">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[130px] h-9 rounded-xl border-[#E8E5F0] bg-white text-sm text-[#64748B] shadow-none focus:ring-[#7C3AED]/20">
+                    <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-[#E8E5F0] shadow-lg">
+                    <SelectItem value="all" className="rounded-lg">All Status</SelectItem>
+                    <SelectItem value="Paid" className="rounded-lg">Paid</SelectItem>
+                    <SelectItem value="Partial" className="rounded-lg">Partial</SelectItem>
+                    <SelectItem value="Pending" className="rounded-lg">Pending</SelectItem>
+                </SelectContent>
+            </Select>
+            <Select value={modeFilter} onValueChange={setModeFilter}>
+                <SelectTrigger className="w-[130px] h-9 rounded-xl border-[#E8E5F0] bg-white text-sm text-[#64748B] shadow-none focus:ring-[#7C3AED]/20">
+                    <SelectValue placeholder="All Modes" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-[#E8E5F0] shadow-lg">
+                    <SelectItem value="all" className="rounded-lg">All Modes</SelectItem>
+                    <SelectItem value="Cash" className="rounded-lg">Cash</SelectItem>
+                    <SelectItem value="UPI" className="rounded-lg">UPI</SelectItem>
+                    <SelectItem value="Card" className="rounded-lg">Card</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+    );
 
     return (
         <div>
-            <PageHeader title="Payments" description="Track all payment transactions and invoices" icon={CreditCard}>
-                <Button onClick={openAddForm}>
-                    <Plus className="mr-2 h-4 w-4" /> Add Payment
-                </Button>
-            </PageHeader>
+            <PageHeader
+                title="Payments"
+                description="Track all payment transactions and invoices"
+                breadcrumb={["Dashboard", "Payments"]}
+                filters={filtersContent}
+            />
 
             {/* Summary Cards */}
             <div className="grid gap-4 sm:grid-cols-3 mb-6">
@@ -155,36 +153,6 @@ export default function PaymentsClient({ initialPayments, bookings, customers, v
                 <StatCard title="Pending Amount" value={formatCurrency(pendingAmount)} icon={Clock} description="awaiting collection" />
                 <StatCard title="Completed Payments" value={paidCount} icon={CheckCircle2} description={`of ${paymentsList.length} total`} />
             </div>
-
-            {/* Filters */}
-            <Card className="mb-6">
-                <CardContent className="p-4">
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input placeholder="Search by transaction ID, booking, or customer..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
-                        </div>
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="w-full sm:w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Status</SelectItem>
-                                <SelectItem value="Paid">Paid</SelectItem>
-                                <SelectItem value="Partial">Partial</SelectItem>
-                                <SelectItem value="Pending">Pending</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Select value={modeFilter} onValueChange={setModeFilter}>
-                            <SelectTrigger className="w-full sm:w-[140px]"><SelectValue placeholder="Mode" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Modes</SelectItem>
-                                <SelectItem value="Cash">Cash</SelectItem>
-                                <SelectItem value="UPI">UPI</SelectItem>
-                                <SelectItem value="Card">Card</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </CardContent>
-            </Card>
 
             <Card>
                 <CardContent className="p-0">
@@ -232,9 +200,11 @@ export default function PaymentsClient({ initialPayments, bookings, customers, v
                                                         <DropdownMenuItem onClick={() => { setSelectedPayment(payment); setInvoiceOpen(true); }}>
                                                             <FileText className="mr-2 h-4 w-4" /> View Invoice
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => openEditForm(payment)}>
-                                                            <Pencil className="mr-2 h-4 w-4" /> Edit
-                                                        </DropdownMenuItem>
+                                                        <Link href={`/dashboard/payments/${payment.id}/edit`}>
+                                                            <DropdownMenuItem>
+                                                                <Pencil className="mr-2 h-4 w-4" /> Edit
+                                                            </DropdownMenuItem>
+                                                        </Link>
                                                         <DropdownMenuSeparator />
                                                         <DropdownMenuItem
                                                             className="text-destructive"
@@ -253,91 +223,6 @@ export default function PaymentsClient({ initialPayments, bookings, customers, v
                     </Table>
                 </CardContent>
             </Card>
-
-            {/* Add/Edit Dialog */}
-            <Dialog open={formOpen} onOpenChange={setFormOpen}>
-                <DialogContent className="max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>{selectedPayment ? "Edit Payment" : "Add New Payment"}</DialogTitle>
-                        <DialogDescription>
-                            {selectedPayment ? "Update payment details." : "Record a new payment transaction."}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="booking">Booking *</Label>
-                            <Select
-                                value={formData.bookingId || ""}
-                                onValueChange={(v) => {
-                                    const b = bookingMap.get(v);
-                                    setFormData({
-                                        ...formData,
-                                        bookingId: v,
-                                        amount: b ? b.totalAmount : formData.amount
-                                    });
-                                }}
-                                disabled={!!selectedPayment}
-                            >
-                                <SelectTrigger><SelectValue placeholder="Select Booking" /></SelectTrigger>
-                                <SelectContent className="max-h-[200px]">
-                                    {bookings.map(b => {
-                                        const c = customerMap.get(b.customerId);
-                                        return (
-                                            <SelectItem key={b.id} value={b.id}>
-                                                {b.id.toUpperCase()} - {c?.name || "Unknown"} ({formatCurrency(b.totalAmount)})
-                                            </SelectItem>
-                                        );
-                                    })}
-                                </SelectContent>
-                            </Select>
-                            {formErrors.bookingId && <p className="text-xs text-destructive">{formErrors.bookingId}</p>}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1.5">
-                                <Label htmlFor="amount">Amount *</Label>
-                                <Input id="amount" type="number" value={formData.amount || ""} onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })} />
-                                {formErrors.amount && <p className="text-xs text-destructive">{formErrors.amount}</p>}
-                            </div>
-                            <div className="space-y-1.5">
-                                <Label>Mode *</Label>
-                                <Select value={formData.mode || "Cash"} onValueChange={(v) => setFormData({ ...formData, mode: v as PaymentMode })}>
-                                    <SelectTrigger><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Cash">Cash</SelectItem>
-                                        <SelectItem value="UPI">UPI</SelectItem>
-                                        <SelectItem value="Card">Card</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {formErrors.mode && <p className="text-xs text-destructive">{formErrors.mode}</p>}
-                            </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <Label htmlFor="txnId">Transaction ID</Label>
-                            <Input id="txnId" value={formData.transactionId || ""} onChange={(e) => setFormData({ ...formData, transactionId: e.target.value })} placeholder="Optional for pending" />
-                            {formErrors.transactionId && <p className="text-xs text-destructive">{formErrors.transactionId}</p>}
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <Label>Status *</Label>
-                            <Select value={formData.status || "Pending"} onValueChange={(v) => setFormData({ ...formData, status: v as PaymentStatus })}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Pending">Pending</SelectItem>
-                                    <SelectItem value="Paid">Paid</SelectItem>
-                                    <SelectItem value="Partial">Partial</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {formErrors.status && <p className="text-xs text-destructive">{formErrors.status}</p>}
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSave}>Save Payment</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
 
             {/* Delete Dialog */}
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>

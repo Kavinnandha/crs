@@ -23,21 +23,21 @@ export function StatCard({
     className,
 }: StatCardProps) {
     return (
-        <Card className={cn("relative overflow-hidden", className)}>
-            <CardContent className="p-6">
+        <Card className={cn("relative overflow-hidden bg-white border-[#E8E5F0] shadow-sm hover:shadow-md transition-shadow duration-200", className)}>
+            <CardContent className="p-5">
                 <div className="flex items-start justify-between">
                     <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">{title}</p>
-                        <p className="text-3xl font-bold tracking-tight">{value}</p>
+                        <p className="text-xs font-medium text-[#94a3b8] uppercase tracking-wide">{title}</p>
+                        <p className="text-2xl font-semibold text-[#1a1d2e] tracking-tight">{value}</p>
                         {(description || trend) && (
                             <div className="flex items-center gap-2">
                                 {trend && (
                                     <span
                                         className={cn(
-                                            "inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded-md",
+                                            "inline-flex items-center text-xs font-medium px-1.5 py-0.5 rounded-md",
                                             trend.positive
-                                                ? "bg-emerald-500/10 text-emerald-600"
-                                                : "bg-red-500/10 text-red-600"
+                                                ? "bg-emerald-50 text-emerald-600"
+                                                : "bg-red-50 text-red-600"
                                         )}
                                     >
                                         {trend.positive ? "+" : ""}
@@ -45,13 +45,13 @@ export function StatCard({
                                     </span>
                                 )}
                                 {description && (
-                                    <p className="text-xs text-muted-foreground">{description}</p>
+                                    <p className="text-[11px] text-[#94a3b8]">{description}</p>
                                 )}
                             </div>
                         )}
                     </div>
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                        <Icon className="h-5 w-5 text-primary" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F5F3FF]">
+                        <Icon className="h-5 w-5 text-[#7C3AED]" />
                     </div>
                 </div>
             </CardContent>

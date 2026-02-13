@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
+});
+
 export const metadata: Metadata = {
-  title: "SpeedWheels CRS — Admin Dashboard",
-  description: "Car Rental Management System for SpeedWheels fleet operations",
+  title: "Carzio — Admin Dashboard",
+  description: "Car Rental Management System for Carzio fleet operations",
 };
 
 export default function RootLayout({
@@ -13,9 +21,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
       <body className="font-sans antialiased">
-        <TooltipProvider>{children}</TooltipProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TooltipProvider>{children}</TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

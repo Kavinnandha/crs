@@ -1,68 +1,76 @@
-
 "use client";
 
-import { useState, useMemo } from "react";
-import { Car, Plus, Search, ArrowUpDown, MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import {
+    Car, Battery, Zap, Droplets, Gauge, Calendar, DollarSign,
+    Plus, Search, Filter, ArrowUpDown, MoreHorizontal, Pencil, Trash2, Eye, LayoutGrid, List, SlidersHorizontal,
+} from "lucide-react";
+import { useDashboard } from "@/components/layout/dashboard-layout";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatusBadge } from "@/components/tables/status-badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-    DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-    DropdownMenuTrigger, DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import {
-    Dialog, DialogContent, DialogDescription, DialogFooter,
-    DialogHeader, DialogTitle,
+    Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/utils";
-import { Vehicle, VehicleCategory, FuelType, TransmissionType, VehicleStatus, Booking } from "@/types";
-
-type SortKey = "brand" | "year" | "pricePerDay" | "status" | "category";
-type SortDir = "asc" | "desc";
-
-// SortHeader component defined outside to avoid recreation during render
-const SortHeader = ({ label, sortKeyName, onClick }: { label: string; sortKeyName: SortKey; onClick: (key: SortKey) => void }) => (
-    <TableHead>
-        <button onClick={() => onClick(sortKeyName)} className="flex items-center gap-1 hover:text-foreground transition-colors">
-            {label}
-            <ArrowUpDown className="h-3.5 w-3.5" />
-        </button>
-    </TableHead>
-);
+import {
+    DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Vehicle, Booking } from "@/types";
+import { deleteVehicle } from "@/lib/actions";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface VehiclesClientProps {
     initialVehicles: Vehicle[];
     bookings: Booking[];
 }
 
+type SortKey = "brand" | "pricePerDay" | "year" | "status" | "category";
+type SortDir = "asc" | "desc";
+
 export default function VehiclesClient({ initialVehicles, bookings }: VehiclesClientProps) {
+    const { setHeaderAction, searchTerm } = useDashboard();
+    const router = useRouter(); // Use router for navigation if needed, though Links are better
     const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
-    const [search, setSearch] = useState("");
+
+    // Sync vehicles when initialVehicles changes (e.g. after revalidate)
+    useEffect(() => {
+        setVehicles(initialVehicles);
+    }, [initialVehicles]);
+
     const [statusFilter, setStatusFilter] = useState<string>("all");
     const [categoryFilter, setCategoryFilter] = useState<string>("all");
     const [sortKey, setSortKey] = useState<SortKey>("brand");
     const [sortDir, setSortDir] = useState<SortDir>("asc");
-    const [formOpen, setFormOpen] = useState(false);
+    const [viewMode, setViewMode] = useState<"table" | "card">("card");
+
+    // Delete state
     const [deleteOpen, setDeleteOpen] = useState(false);
-    const [viewOpen, setViewOpen] = useState(false);
-    const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-    const [formData, setFormData] = useState<Partial<Vehicle>>({});
-    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+    const [vehicleToDelete, setVehicleToDelete] = useState<Vehicle | null>(null);
+
+    // Provide the Add button into header
+    useEffect(() => {
+        setHeaderAction(
+            <Link href="/dashboard/vehicles/new">
+                <Button className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl h-10 px-5 shadow-sm shadow-[#7C3AED]/20 font-medium text-sm gap-2 whitespace-nowrap">
+                    <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Add Vehicle</span>
+                </Button>
+            </Link>
+        );
+        return () => setHeaderAction(null);
+    }, [setHeaderAction]);
 
     const filteredVehicles = useMemo(() => {
         let result = [...vehicles];
-        if (search) {
-            const q = search.toLowerCase();
+        if (searchTerm) {
+            const q = searchTerm.toLowerCase();
             result = result.filter(
                 (v) =>
                     v.brand.toLowerCase().includes(q) ||
@@ -86,430 +94,273 @@ export default function VehiclesClient({ initialVehicles, bookings }: VehiclesCl
             return sortDir === "asc" ? cmp : -cmp;
         });
         return result;
-    }, [vehicles, search, statusFilter, categoryFilter, sortKey, sortDir]);
+    }, [vehicles, searchTerm, statusFilter, categoryFilter, sortKey, sortDir]);
 
-    const toggleSort = (key: SortKey) => {
-        if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
-        else { setSortKey(key); setSortDir("asc"); }
-    };
-
-    const validateForm = (): boolean => {
-        const errors: Record<string, string> = {};
-        if (!formData.brand?.trim()) errors.brand = "Brand is required";
-        if (!formData.model?.trim()) errors.model = "Model is required";
-        if (!formData.year || formData.year < 2000 || formData.year > 2026) errors.year = "Valid year required";
-        if (!formData.registrationNumber?.trim()) errors.registrationNumber = "Registration number is required";
-        if (!formData.pricePerDay || formData.pricePerDay <= 0) errors.pricePerDay = "Valid price required";
-        if (!formData.category) errors.category = "Category is required";
-        if (!formData.fuelType) errors.fuelType = "Fuel type is required";
-        if (!formData.transmission) errors.transmission = "Transmission is required";
-
-        // Check duplicate registration
-        if (formData.registrationNumber) {
-            const dup = vehicles.find(
-                (v) => v.registrationNumber === formData.registrationNumber && v.id !== selectedVehicle?.id
-            );
-            if (dup) errors.registrationNumber = "Registration number already exists";
+    const handleDelete = async () => {
+        if (vehicleToDelete) {
+            await deleteVehicle(vehicleToDelete.id);
+            setDeleteOpen(false);
+            setVehicleToDelete(null);
         }
-        setFormErrors(errors);
-        return Object.keys(errors).length === 0;
     };
 
-    const openAddForm = () => {
-        setSelectedVehicle(null);
-        setFormData({ status: "Available", fuelType: "Petrol", transmission: "Manual", year: 2024 });
-        setFormErrors({});
-        setFormOpen(true);
+    const confirmDelete = (vehicle: Vehicle) => {
+        setVehicleToDelete(vehicle);
+        setDeleteOpen(true);
     };
 
-    const openEditForm = (vehicle: Vehicle) => {
-        setSelectedVehicle(vehicle);
-        setFormData({ ...vehicle });
-        setFormErrors({});
-        setFormOpen(true);
-    };
-
-    const handleSave = () => {
-        if (!validateForm()) return;
-        if (selectedVehicle) {
-            setVehicles((prev) =>
-                prev.map((v) => (v.id === selectedVehicle.id ? { ...v, ...formData } as Vehicle : v))
-            );
-        } else {
-            const newVehicle: Vehicle = {
-                id: `v${Date.now()}`,
-                brand: formData.brand!,
-                model: formData.model!,
-                year: formData.year!,
-                category: formData.category as VehicleCategory,
-                registrationNumber: formData.registrationNumber!,
-                fuelType: formData.fuelType as FuelType,
-                transmission: formData.transmission as TransmissionType,
-                status: formData.status as VehicleStatus,
-                pricePerDay: formData.pricePerDay!,
-                imageUrl: "/vehicles/placeholder.jpg",
-                mileage: formData.mileage || 0,
-                color: formData.color || "White",
-                createdAt: new Date().toISOString().slice(0, 10),
-            };
-            setVehicles((prev) => [...prev, newVehicle]);
+    // Helper functions for styles
+    const getStatusStyle = (status: string) => {
+        switch (status) {
+            case 'Available': return 'bg-emerald-50 text-emerald-600 border-emerald-200';
+            case 'Rented': return 'bg-blue-50 text-blue-600 border-blue-200';
+            case 'Maintenance': return 'bg-amber-50 text-amber-600 border-amber-200';
+            default: return 'bg-gray-50 text-gray-600 border-gray-200';
         }
-        setFormOpen(false);
     };
 
-    const handleDelete = () => {
-        if (selectedVehicle) {
-            setVehicles((prev) => prev.filter((v) => v.id !== selectedVehicle.id));
+    const getCategoryStyle = (category: string) => {
+        switch (category) {
+            case 'SUV': return 'bg-violet-50 text-violet-600 border-violet-200';
+            case 'Sedan': return 'bg-sky-50 text-sky-600 border-sky-200';
+            case 'Hatchback': return 'bg-teal-50 text-teal-600 border-teal-200';
+            case 'Luxury': return 'bg-rose-50 text-rose-600 border-rose-200';
+            default: return 'bg-gray-50 text-gray-600 border-gray-200';
         }
-        setDeleteOpen(false);
-        setSelectedVehicle(null);
     };
+
+    const filtersContent = (
+        <div className="flex flex-wrap items-center gap-2 justify-end">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[110px] sm:w-[140px] h-9 rounded-xl border-[#E8E5F0] bg-white text-sm text-[#64748B] shadow-none focus:ring-[#7C3AED]/20">
+                    <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-[#E8E5F0] shadow-lg">
+                    <SelectItem value="all" className="rounded-lg">All Status</SelectItem>
+                    <SelectItem value="Available" className="rounded-lg">Available</SelectItem>
+                    <SelectItem value="Rented" className="rounded-lg">Rented</SelectItem>
+                    <SelectItem value="Maintenance" className="rounded-lg">Maintenance</SelectItem>
+                </SelectContent>
+            </Select>
+
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[120px] sm:w-[150px] h-9 rounded-xl border-[#E8E5F0] bg-white text-sm text-[#64748B] shadow-none focus:ring-[#7C3AED]/20">
+                    <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-[#E8E5F0] shadow-lg">
+                    <SelectItem value="all" className="rounded-lg">All Categories</SelectItem>
+                    <SelectItem value="Hatchback" className="rounded-lg">Hatchback</SelectItem>
+                    <SelectItem value="Sedan" className="rounded-lg">Sedan</SelectItem>
+                    <SelectItem value="SUV" className="rounded-lg">SUV</SelectItem>
+                    <SelectItem value="Luxury" className="rounded-lg">Luxury</SelectItem>
+                </SelectContent>
+            </Select>
+
+            <div className="flex items-center gap-0.5 ml-1 bg-[#F8F9FC] rounded-xl p-0.5 border border-[#E8E5F0]">
+                <Button variant="ghost" size="icon" onClick={() => setViewMode("table")}
+                    className={`h-8 w-8 rounded-lg ${viewMode === "table" ? "bg-white shadow-sm text-[#7C3AED]" : "text-[#94a3b8] hover:text-[#64748B]"}`}>
+                    <List className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => setViewMode("card")}
+                    className={`h-8 w-8 rounded-lg ${viewMode === "card" ? "bg-white shadow-sm text-[#7C3AED]" : "text-[#94a3b8] hover:text-[#64748B]"}`}>
+                    <LayoutGrid className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
+    );
 
     return (
         <div>
-            <PageHeader title="Vehicles" description="Manage your fleet of vehicles" icon={Car}>
-                <Button onClick={openAddForm}>
-                    <Plus className="mr-2 h-4 w-4" /> Add Vehicle
-                </Button>
-            </PageHeader>
+            <PageHeader
+                title="Fleet Management"
+                description="Manage your vehicle fleet"
+                breadcrumb={["Dashboard", "Vehicles"]}
+                filters={filtersContent}
+            />
 
-            {/* Filters */}
-            <Card className="mb-6">
-                <CardContent className="p-4">
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                placeholder="Search by brand, model, or registration..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="pl-9"
-                            />
-                        </div>
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="w-full sm:w-[160px]">
-                                <SelectValue placeholder="Status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Status</SelectItem>
-                                <SelectItem value="Available">Available</SelectItem>
-                                <SelectItem value="Rented">Rented</SelectItem>
-                                <SelectItem value="Maintenance">Maintenance</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                            <SelectTrigger className="w-full sm:w-[160px]">
-                                <SelectValue placeholder="Category" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Categories</SelectItem>
-                                <SelectItem value="Hatchback">Hatchback</SelectItem>
-                                <SelectItem value="Sedan">Sedan</SelectItem>
-                                <SelectItem value="SUV">SUV</SelectItem>
-                                <SelectItem value="Luxury">Luxury</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Results Count */}
             <div className="flex items-center justify-between mb-3">
-                <p className="text-sm text-muted-foreground">
-                    Showing {filteredVehicles.length} of {vehicles.length} vehicles
+                <p className="text-sm text-[#94a3b8] font-medium">
+                    {filteredVehicles.length} vehicle{filteredVehicles.length !== 1 ? "s" : ""} found
                 </p>
             </div>
 
-            {/* Table */}
-            <Card>
-                <CardContent className="p-0">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <SortHeader label="Vehicle" sortKeyName="brand" onClick={toggleSort} />
-                                <SortHeader label="Category" sortKeyName="category" onClick={toggleSort} />
-                                <TableHead>Registration</TableHead>
-                                <TableHead>Fuel</TableHead>
-                                <TableHead>Transmission</TableHead>
-                                <SortHeader label="Price/Day" sortKeyName="pricePerDay" onClick={toggleSort} />
-                                <SortHeader label="Status" sortKeyName="status" onClick={toggleSort} />
-                                <TableHead className="w-[50px]" />
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredVehicles.length === 0 ? (
+            {viewMode === "table" ? (
+                <Card className="bg-white rounded-2xl border border-[#E8E5F0] shadow-sm overflow-hidden">
+                    <CardContent className="p-0">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                                        No vehicles found matching your criteria.
-                                    </TableCell>
+                                    <TableHead>Vehicle</TableHead>
+                                    <TableHead>Category</TableHead>
+                                    <TableHead>Reg. Number</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Price/Day</TableHead>
+                                    <TableHead className="w-[80px]" />
                                 </TableRow>
-                            ) : (
-                                filteredVehicles.map((vehicle) => (
-                                    <TableRow key={vehicle.id}>
-                                        <TableCell>
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
-                                                    <Car className="h-4 w-4 text-muted-foreground" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium text-sm">{vehicle.brand} {vehicle.model}</p>
-                                                    <p className="text-xs text-muted-foreground">{vehicle.year} • {vehicle.color}</p>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant="secondary" className="font-normal">{vehicle.category}</Badge>
-                                        </TableCell>
-                                        <TableCell className="font-mono text-xs">{vehicle.registrationNumber}</TableCell>
-                                        <TableCell className="text-sm">{vehicle.fuelType}</TableCell>
-                                        <TableCell className="text-sm">{vehicle.transmission}</TableCell>
-                                        <TableCell className="font-medium">{formatCurrency(vehicle.pricePerDay)}</TableCell>
-                                        <TableCell>
-                                            <StatusBadge status={vehicle.status} variant="vehicle" />
-                                        </TableCell>
-                                        <TableCell>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => { setSelectedVehicle(vehicle); setViewOpen(true); }}>
-                                                        <Eye className="mr-2 h-4 w-4" /> View Details
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => openEditForm(vehicle)}>
-                                                        <Pencil className="mr-2 h-4 w-4" /> Edit
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        className="text-destructive"
-                                                        onClick={() => { setSelectedVehicle(vehicle); setDeleteOpen(true); }}
-                                                    >
-                                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredVehicles.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center py-12 text-[#94a3b8]">
+                                            No vehicles found matching your criteria.
                                         </TableCell>
                                     </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-
-            {/* Add/Edit Dialog */}
-            <Dialog open={formOpen} onOpenChange={setFormOpen}>
-                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>{selectedVehicle ? "Edit Vehicle" : "Add New Vehicle"}</DialogTitle>
-                        <DialogDescription>
-                            {selectedVehicle ? "Update the vehicle details below." : "Fill in the vehicle details to add it to your fleet."}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1.5">
-                                <Label htmlFor="brand">Brand *</Label>
-                                <Input id="brand" value={formData.brand || ""} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} />
-                                {formErrors.brand && <p className="text-xs text-destructive">{formErrors.brand}</p>}
-                            </div>
-                            <div className="space-y-1.5">
-                                <Label htmlFor="model">Model *</Label>
-                                <Input id="model" value={formData.model || ""} onChange={(e) => setFormData({ ...formData, model: e.target.value })} />
-                                {formErrors.model && <p className="text-xs text-destructive">{formErrors.model}</p>}
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1.5">
-                                <Label htmlFor="year">Year *</Label>
-                                <Input id="year" type="number" value={formData.year || ""} onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })} />
-                                {formErrors.year && <p className="text-xs text-destructive">{formErrors.year}</p>}
-                            </div>
-                            <div className="space-y-1.5">
-                                <Label htmlFor="category">Category *</Label>
-                                <Select value={formData.category || ""} onValueChange={(v) => setFormData({ ...formData, category: v as VehicleCategory })}>
-                                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Hatchback">Hatchback</SelectItem>
-                                        <SelectItem value="Sedan">Sedan</SelectItem>
-                                        <SelectItem value="SUV">SUV</SelectItem>
-                                        <SelectItem value="Luxury">Luxury</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {formErrors.category && <p className="text-xs text-destructive">{formErrors.category}</p>}
-                            </div>
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="regNum">Registration Number *</Label>
-                            <Input id="regNum" value={formData.registrationNumber || ""} onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value.toUpperCase() })} placeholder="KA-01-AB-1234" />
-                            {formErrors.registrationNumber && <p className="text-xs text-destructive">{formErrors.registrationNumber}</p>}
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1.5">
-                                <Label>Fuel Type *</Label>
-                                <Select value={formData.fuelType || ""} onValueChange={(v) => setFormData({ ...formData, fuelType: v as FuelType })}>
-                                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Petrol">Petrol</SelectItem>
-                                        <SelectItem value="Diesel">Diesel</SelectItem>
-                                        <SelectItem value="Electric">Electric</SelectItem>
-                                        <SelectItem value="Hybrid">Hybrid</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {formErrors.fuelType && <p className="text-xs text-destructive">{formErrors.fuelType}</p>}
-                            </div>
-                            <div className="space-y-1.5">
-                                <Label>Transmission *</Label>
-                                <Select value={formData.transmission || ""} onValueChange={(v) => setFormData({ ...formData, transmission: v as TransmissionType })}>
-                                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Manual">Manual</SelectItem>
-                                        <SelectItem value="Automatic">Automatic</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {formErrors.transmission && <p className="text-xs text-destructive">{formErrors.transmission}</p>}
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1.5">
-                                <Label htmlFor="price">Price per Day (₹) *</Label>
-                                <Input id="price" type="number" value={formData.pricePerDay || ""} onChange={(e) => setFormData({ ...formData, pricePerDay: parseInt(e.target.value) })} />
-                                {formErrors.pricePerDay && <p className="text-xs text-destructive">{formErrors.pricePerDay}</p>}
-                            </div>
-                            <div className="space-y-1.5">
-                                <Label htmlFor="color">Color</Label>
-                                <Input id="color" value={formData.color || ""} onChange={(e) => setFormData({ ...formData, color: e.target.value })} />
-                            </div>
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label>Status</Label>
-                            <Select value={formData.status || "Available"} onValueChange={(v) => setFormData({ ...formData, status: v as VehicleStatus })}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Available">Available</SelectItem>
-                                    <SelectItem value="Rented">Rented</SelectItem>
-                                    <SelectItem value="Maintenance">Maintenance</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        {/* Mock image upload */}
-                        <div className="space-y-1.5">
-                            <Label>Vehicle Image</Label>
-                            <div className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors">
-                                <Car className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                                <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
-                                <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 5MB</p>
-                            </div>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSave}>{selectedVehicle ? "Update Vehicle" : "Add Vehicle"}</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* View Dialog */}
-            <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>Vehicle Details</DialogTitle>
-                    </DialogHeader>
-                    {selectedVehicle && (
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-4">
-                                <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10">
-                                    <Car className="h-8 w-8 text-primary" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold">{selectedVehicle.brand} {selectedVehicle.model}</h3>
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                                        <Badge variant="outline">{selectedVehicle.registrationNumber}</Badge>
-                                        <span>•</span>
-                                        <span>{selectedVehicle.year}</span>
-                                        <span>•</span>
-                                        <StatusBadge status={selectedVehicle.status} variant="vehicle" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
-                                {[
-                                    ["Category", selectedVehicle.category],
-                                    ["Fuel Type", selectedVehicle.fuelType],
-                                    ["Transmission", selectedVehicle.transmission],
-                                    ["Price/Day", formatCurrency(selectedVehicle.pricePerDay)],
-                                    ["Color", selectedVehicle.color],
-                                    ["Mileage", `${selectedVehicle.mileage} km/l`],
-                                ].map(([label, value]) => (
-                                    <div key={label as string}>
-                                        <p className="text-xs text-muted-foreground mb-1">{label}</p>
-                                        <p className="font-medium text-sm">{value}</p>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="space-y-3">
-                                <h4 className="font-semibold text-lg">Booking History</h4>
-                                {bookings.filter(b => b.vehicleId === selectedVehicle.id).length === 0 ? (
-                                    <div className="text-center py-8 text-muted-foreground border rounded-lg bg-muted/20">
-                                        No booking history available for this vehicle.
-                                    </div>
                                 ) : (
-                                    <div className="border rounded-lg overflow-hidden">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow className="bg-muted/50">
-                                                    <TableHead>Start Date</TableHead>
-                                                    <TableHead>End Date</TableHead>
-                                                    <TableHead>Status</TableHead>
-                                                    <TableHead className="text-right">Amount</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {bookings
-                                                    .filter(b => b.vehicleId === selectedVehicle.id)
-                                                    .sort((a, b) => new Date(b.pickupDate).getTime() - new Date(a.pickupDate).getTime())
-                                                    .map((booking) => (
-                                                        <TableRow key={booking.id}>
-                                                            <TableCell className="font-medium">
-                                                                {new Date(booking.pickupDate).toLocaleDateString("en-IN")}
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                {new Date(booking.dropDate).toLocaleDateString("en-IN")}
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <StatusBadge status={booking.status} variant="booking" />
-                                                            </TableCell>
-                                                            <TableCell className="text-right">
-                                                                {formatCurrency(booking.totalAmount)}
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
+                                    filteredVehicles.map((vehicle) => (
+                                        <TableRow key={vehicle.id} className="border-[#E8E5F0] hover:bg-[#F8F9FC]">
+                                            <TableCell>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-10 w-16 rounded-lg bg-gray-100 overflow-hidden">
+                                                        <img src={vehicle.imageUrl} alt={vehicle.model} className="h-full w-full object-cover" />
+                                                    </div>
+                                                    <div>
+                                                        <Link href={`/dashboard/vehicles/${vehicle.id}`} className="hover:underline">
+                                                            <p className="font-medium text-sm text-[#1a1d2e]">{vehicle.brand} {vehicle.model}</p>
+                                                        </Link>
+                                                        <p className="text-xs text-[#94a3b8]">{vehicle.year} • {vehicle.transmission} • {vehicle.fuelType}</p>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCategoryStyle(vehicle.category)}`}>
+                                                    {vehicle.category}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell className="font-mono text-xs text-[#64748B]">{vehicle.registrationNumber}</TableCell>
+                                            <TableCell>
+                                                <StatusBadge status={vehicle.status} variant="vehicle" />
+                                            </TableCell>
+                                            <TableCell className="font-medium text-[#1a1d2e]">₹{vehicle.pricePerDay}</TableCell>
+                                            <TableCell>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-[#94a3b8] hover:text-[#64748B] hover:bg-[#F8F9FC] rounded-lg">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="rounded-xl border-[#E8E5F0] shadow-lg">
+                                                        <Link href={`/dashboard/vehicles/${vehicle.id}`}>
+                                                            <DropdownMenuItem className="rounded-lg cursor-pointer">
+                                                                <Eye className="mr-2 h-4 w-4" /> View Details
+                                                            </DropdownMenuItem>
+                                                        </Link>
+                                                        <Link href={`/dashboard/vehicles/${vehicle.id}/edit`}>
+                                                            <DropdownMenuItem className="rounded-lg cursor-pointer">
+                                                                <Pencil className="mr-2 h-4 w-4" /> Edit
+                                                            </DropdownMenuItem>
+                                                        </Link>
+                                                        <DropdownMenuSeparator className="bg-[#E8E5F0]" />
+                                                        <DropdownMenuItem
+                                                            className="text-red-500 hover:text-red-600 rounded-lg cursor-pointer"
+                                                            onClick={() => confirmDelete(vehicle)}
+                                                        >
+                                                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
                                 )}
-                            </div>
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {filteredVehicles.map((vehicle) => (
+                        <Card key={vehicle.id} className="group relative overflow-hidden transition-all hover:shadow-md border-[#E8E5F0] dark:border-slate-800 bg-white dark:bg-slate-900">
+                            <CardContent className="p-5 flex flex-col h-full">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <StatusBadge status={vehicle.status} variant="vehicle" />
+                                            <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${getCategoryStyle(vehicle.category)}`}>
+                                                {vehicle.category}
+                                            </span>
+                                        </div>
+                                        <Link href={`/dashboard/vehicles/${vehicle.id}`} className="hover:underline">
+                                            <h3 className="font-semibold text-xl text-[#1a1d2e] dark:text-white">{vehicle.brand} {vehicle.model}</h3>
+                                        </Link>
+                                        <p className="text-sm text-muted-foreground">{vehicle.registrationNumber}</p>
+                                    </div>
+                                    <div className="flex flex-col items-end">
+                                        <div className="text-lg font-bold text-[#7C3AED]">₹{vehicle.pricePerDay}</div>
+                                        <span className="text-xs text-muted-foreground">/day</span>
+                                    </div>
+                                </div>
 
-            {/* Delete Dialog */}
+                                <div className="grid grid-cols-2 gap-3 mb-5">
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl flex flex-col gap-1">
+                                        <span className="text-xs text-muted-foreground">Year</span>
+                                        <span className="text-sm font-medium">{vehicle.year}</span>
+                                    </div>
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl flex flex-col gap-1">
+                                        <span className="text-xs text-muted-foreground">Fuel</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <Zap className="h-3.5 w-3.5 text-amber-500" />
+                                            <span className="text-sm font-medium">{vehicle.fuelType}</span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl flex flex-col gap-1">
+                                        <span className="text-xs text-muted-foreground">Transmission</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <Gauge className="h-3.5 w-3.5 text-blue-500" />
+                                            <span className="text-sm font-medium">{vehicle.transmission}</span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl flex flex-col gap-1">
+                                        <span className="text-xs text-muted-foreground">Color</span>
+                                        <span className="text-sm font-medium">{vehicle.color}</span>
+                                    </div>
+                                </div>
+
+                                <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+                                    <Link href={`/dashboard/vehicles/${vehicle.id}`}>
+                                        <Button variant="outline" size="sm" className="h-8 text-xs rounded-lg border-slate-200">
+                                            Details
+                                        </Button>
+                                    </Link>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-[#94a3b8] hover:text-[#64748B] hover:bg-slate-100 rounded-lg">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="rounded-xl border-[#E8E5F0] shadow-lg">
+                                            <Link href={`/dashboard/vehicles/${vehicle.id}/edit`}>
+                                                <DropdownMenuItem className="rounded-lg cursor-pointer">
+                                                    <Pencil className="mr-2 h-4 w-4" /> Edit
+                                                </DropdownMenuItem>
+                                            </Link>
+                                            <DropdownMenuSeparator className="bg-[#E8E5F0]" />
+                                            <DropdownMenuItem
+                                                className="text-red-500 hover:text-red-600 rounded-lg cursor-pointer"
+                                                onClick={() => confirmDelete(vehicle)}
+                                            >
+                                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
+
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-                <DialogContent className="max-w-sm">
+                <DialogContent className="max-w-sm rounded-2xl border-[#E8E5F0] shadow-xl">
                     <DialogHeader>
-                        <DialogTitle>Delete Vehicle</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to delete {selectedVehicle?.brand} {selectedVehicle?.model} ({selectedVehicle?.registrationNumber})? This action cannot be undone.
+                        <DialogTitle className="text-[#1a1d2e] text-lg font-semibold">Delete Vehicle</DialogTitle>
+                        <DialogDescription className="text-[#94a3b8]">
+                            Are you sure you want to delete {vehicleToDelete?.brand} {vehicleToDelete?.model}?
+                            This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
-                        <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+                        <Button variant="outline" onClick={() => setDeleteOpen(false)} className="rounded-xl border-[#E8E5F0] text-[#64748B] hover:bg-[#F8F9FC] shadow-none">Cancel</Button>
+                        <Button variant="destructive" onClick={handleDelete} className="rounded-xl shadow-sm">Delete</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

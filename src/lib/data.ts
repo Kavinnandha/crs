@@ -104,7 +104,16 @@ export async function getCustomerById(id: string) {
 export async function getVehicleById(id: string) {
     await dbConnect();
     try {
-        const vehicle = await Vehicle.findOne({ id }).lean();
+        let vehicle = await Vehicle.findOne({ id }).lean();
+        if (!vehicle) {
+            try {
+                // strict check for ObjectId validity usually needed, but findById handles some
+                vehicle = await Vehicle.findById(id).lean();
+            } catch (e) {
+                // ignore
+            }
+        }
+        if (!vehicle) return null;
         return JSON.parse(JSON.stringify(vehicle));
     } catch (error) {
         console.error('Error fetching vehicle:', error);
@@ -153,6 +162,7 @@ export async function getMonthlyRevenue() {
     }
 }
 
+
 export async function getVehicleUtilization() {
     await dbConnect();
     try {
@@ -163,7 +173,7 @@ export async function getVehicleUtilization() {
         vehicles.forEach((v: any) => {
             const cat = v.category;
             totalByCategory[cat] = (totalByCategory[cat] || 0) + 1;
-            if (v.status === 'Rented') { // Check status string case
+            if (v.status === 'Rented') {
                 utilizedByCategory[cat] = (utilizedByCategory[cat] || 0) + 1;
             }
         });
@@ -183,5 +193,61 @@ export async function getVehicleUtilization() {
     } catch (error) {
         console.error('Error fetching utilization:', error);
         return [];
+    }
+}
+
+export async function getMaintenanceRecords() {
+    await dbConnect();
+    try {
+        const records = await Maintenance.find({}).sort({ serviceDate: -1 }).lean();
+        return JSON.parse(JSON.stringify(records));
+    } catch (error) {
+        console.error('Error fetching maintenance records:', error);
+        return [];
+    }
+}
+
+export async function getMaintenanceById(id: string) {
+    await dbConnect();
+    try {
+        let record = await Maintenance.findOne({ id }).lean();
+        if (!record) {
+            try { record = await Maintenance.findById(id).lean(); } catch (e) { }
+        }
+        if (!record) return null;
+        return JSON.parse(JSON.stringify(record));
+    } catch (error) {
+        console.error('Error fetching maintenance record:', error);
+        return null;
+    }
+}
+
+export async function getBookingById(id: string) {
+    await dbConnect();
+    try {
+        let booking = await Booking.findOne({ id }).lean();
+        if (!booking) {
+            try { booking = await Booking.findById(id).lean(); } catch (e) { }
+        }
+        if (!booking) return null;
+        return JSON.parse(JSON.stringify(booking));
+    } catch (error) {
+        console.error('Error fetching booking:', error);
+        return null;
+    }
+}
+
+export async function getPaymentById(id: string) {
+    await dbConnect();
+    try {
+        let payment = await Payment.findOne({ id }).lean();
+        if (!payment) {
+            try { payment = await Payment.findById(id).lean(); } catch (e) { }
+        }
+        if (!payment) return null;
+        return JSON.parse(JSON.stringify(payment));
+    } catch (error) {
+        console.error('Error fetching payment:', error);
+        return null;
     }
 }
