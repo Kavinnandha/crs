@@ -10,7 +10,16 @@ export interface IVehicle extends Omit<Document, 'model'> {
     fuelType: string;
     transmission: string;
     status: string;
-    pricePerDay: number;
+    pricePerDay: number; // Kept for backward compatibility, but we should use rates
+    rates: {
+        hourly: number;
+        daily: number;
+        weekly: number;
+    };
+    extraCharges: {
+        lateReturnPerHour: number;
+        extraKm: number;
+    };
     imageUrl: string;
     mileage: number;
     color: string;
@@ -34,6 +43,15 @@ const vehicleSchema = new Schema<IVehicle>(
         fuelType: { type: String, required: true },
         transmission: { type: String, required: true },
         pricePerDay: { type: Number, required: true },
+        rates: {
+            hourly: { type: Number, default: 0 },
+            daily: { type: Number, required: true },
+            weekly: { type: Number, default: 0 },
+        },
+        extraCharges: {
+            lateReturnPerHour: { type: Number, default: 50 },
+            extraKm: { type: Number, default: 10 },
+        },
         imageUrl: { type: String },
         mileage: { type: Number },
         color: { type: String },

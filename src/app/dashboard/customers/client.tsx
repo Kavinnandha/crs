@@ -4,6 +4,7 @@
 import { useState, useMemo } from "react";
 import {
     Users, Search, Eye, Phone, Mail, MapPin, CreditCard as License, CalendarDays,
+    Plus, Pencil, Trash2, MoreHorizontal,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatusBadge } from "@/components/tables/status-badge";
@@ -14,11 +15,15 @@ import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-    Dialog, DialogContent, DialogHeader, DialogTitle,
+    Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+    DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatCurrency } from "@/lib/utils";
@@ -31,10 +36,15 @@ interface CustomersClientProps {
 }
 
 export default function CustomersClient({ customers, bookings, vehicles }: CustomersClientProps) {
+    const [customersList, setCustomersList] = useState<Customer[]>(customers);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [profileOpen, setProfileOpen] = useState(false);
+    const [formOpen, setFormOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+    const [formData, setFormData] = useState<Partial<Customer>>({});
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
     const vehicleMap = useMemo(() => new Map(vehicles.map(v => [v.id, v])), [vehicles]);
 
@@ -45,7 +55,7 @@ export default function CustomersClient({ customers, bookings, vehicles }: Custo
     const getVehicleById = (id: string) => vehicleMap.get(id);
 
     const filteredCustomers = useMemo(() => {
-        let result = [...customers];
+        let result = [...customersList];
         if (search) {
             const q = search.toLowerCase();
             result = result.filter(
@@ -60,7 +70,61 @@ export default function CustomersClient({ customers, bookings, vehicles }: Custo
             result = result.filter((c) => c.verificationStatus === statusFilter);
         }
         return result;
-    }, [search, statusFilter, customers]);
+    }, [search, statusFilter, customersList]);
+
+    const validateForm = (): boolean => {
+        const errors: Record<string, string> = {};
+        if (!formData.name?.trim()) errors.name = "Name is required";
+        if (!formData.email?.trim() || !/^\S+@\S+\.\S+$/.test(formData.email || "")) errors.email = "Valid email required";
+        if (!formData.phone?.trim()) errors.phone = "Phone is required";
+        if (!formData.drivingLicenseNumber?.trim()) errors.drivingLicenseNumber = "License number is required";
+
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const openAddForm = () => {
+        setSelectedCustomer(null);
+        setFormData({ verificationStatus: "Pending" });
+        setFormErrors({});
+        setFormOpen(true);
+    };
+
+    const openEditForm = (customer: Customer) => {
+        setSelectedCustomer(customer);
+        setFormData({ ...customer });
+        setFormErrors({});
+        setFormOpen(true);
+    };
+
+    const handleSave = () => {
+        if (!validateForm()) return;
+
+        if (selectedCustomer) {
+            setCustomersList(prev => prev.map(c => c.id === selectedCustomer.id ? { ...c, ...formData } as Customer : c));
+        } else {
+            const newCustomer: Customer = {
+                id: `c${Date.now()}`,
+                name: formData.name!,
+                email: formData.email!,
+                phone: formData.phone!,
+                address: formData.address || "",
+                drivingLicenseNumber: formData.drivingLicenseNumber!,
+                verificationStatus: (formData.verificationStatus as any) || "Pending",
+                createdAt: new Date().toISOString(),
+            };
+            setCustomersList(prev => [newCustomer, ...prev]);
+        }
+        setFormOpen(false);
+    };
+
+    const handleDelete = () => {
+        if (selectedCustomer) {
+            setCustomersList(prev => prev.filter(c => c.id !== selectedCustomer.id));
+        }
+        setDeleteOpen(false);
+        setSelectedCustomer(null);
+    };
 
     const openProfile = (customer: Customer) => {
         setSelectedCustomer(customer);
@@ -76,7 +140,11 @@ export default function CustomersClient({ customers, bookings, vehicles }: Custo
                 title="Customers"
                 description="View and manage customer records"
                 icon={Users}
-            />
+            >
+                <Button onClick={openAddForm}>
+                    <Plus className="mr-2 h-4 w-4" /> Add Customer
+                </Button>
+            </PageHeader>
 
             {/* Filters */}
             <Card className="mb-6">
@@ -157,9 +225,28 @@ export default function CustomersClient({ customers, bookings, vehicles }: Custo
                                             {new Date(customer.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                                         </TableCell>
                                         <TableCell>
-                                            <Button variant="ghost" size="sm" onClick={() => openProfile(customer)}>
-                                                <Eye className="h-4 w-4 mr-1" /> View
-                                            </Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => openProfile(customer)}>
+                                                        <Eye className="mr-2 h-4 w-4" /> View Profile
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openEditForm(customer)}>
+                                                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        className="text-destructive"
+                                                        onClick={() => { setSelectedCustomer(customer); setDeleteOpen(true); }}
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 ))
@@ -233,9 +320,9 @@ export default function CustomersClient({ customers, bookings, vehicles }: Custo
                                                                 {vehicle ? `${vehicle.brand} ${vehicle.model}` : "Unknown"}
                                                             </p>
                                                             <p className="text-xs text-muted-foreground">
-                                                                {new Date(booking.pickupDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                                                                {new Date(booking.pickupDate).toLocaleString("en-IN", { dateStyle: 'medium', timeStyle: 'short' })}
                                                                 {" → "}
-                                                                {new Date(booking.dropDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                                                                {new Date(booking.dropDate).toLocaleString("en-IN", { dateStyle: 'medium', timeStyle: 'short' })}
                                                             </p>
                                                         </div>
                                                         <div className="text-right">
@@ -251,6 +338,79 @@ export default function CustomersClient({ customers, bookings, vehicles }: Custo
                             </div>
                         );
                     })()}
+                </DialogContent>
+            </Dialog>
+
+            {/* Add/Edit Dialog */}
+            <Dialog open={formOpen} onOpenChange={setFormOpen}>
+                <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>{selectedCustomer ? "Edit Customer" : "Add New Customer"}</DialogTitle>
+                        <DialogDescription>
+                            {selectedCustomer ? "Update the customer details below." : "Enter the details for the new customer."}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="name">Full Name *</Label>
+                                <Input id="name" value={formData.name || ""} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                                {formErrors.name && <p className="text-xs text-destructive">{formErrors.name}</p>}
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="email">Email *</Label>
+                                <Input id="email" type="email" value={formData.email || ""} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                                {formErrors.email && <p className="text-xs text-destructive">{formErrors.email}</p>}
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="phone">Phone *</Label>
+                                <Input id="phone" value={formData.phone || ""} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                                {formErrors.phone && <p className="text-xs text-destructive">{formErrors.phone}</p>}
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="license">License Number *</Label>
+                                <Input id="license" value={formData.drivingLicenseNumber || ""} onChange={(e) => setFormData({ ...formData, drivingLicenseNumber: e.target.value.toUpperCase() })} />
+                                {formErrors.drivingLicenseNumber && <p className="text-xs text-destructive">{formErrors.drivingLicenseNumber}</p>}
+                            </div>
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="address">Address</Label>
+                            <Input id="address" value={formData.address || ""} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label>Verification Status</Label>
+                            <Select value={formData.verificationStatus || "Pending"} onValueChange={(v) => setFormData({ ...formData, verificationStatus: v as any })}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Pending">Pending</SelectItem>
+                                    <SelectItem value="Verified">Verified</SelectItem>
+                                    <SelectItem value="Rejected">Rejected</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
+                        <Button onClick={handleSave}>Save Changes</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Dialog */}
+            <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                <DialogContent className="max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle>Delete Customer</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete {selectedCustomer?.name}? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+                        <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

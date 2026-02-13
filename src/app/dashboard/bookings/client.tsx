@@ -28,6 +28,7 @@ import {
     DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { formatCurrency } from "@/lib/utils";
+import { calculateRentalPrice } from "@/lib/pricing"; // Import pricing logic
 import { Booking, BookingStatus, Customer, Vehicle } from "@/types";
 
 interface BookingsClientProps {
@@ -124,11 +125,17 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
 
     const handleCreateBooking = () => {
         if (!validateForm()) return;
+
         const vehicle = getVehicleById(formData.vehicleId!);
-        const days = Math.ceil(
-            (new Date(formData.dropDate!).getTime() - new Date(formData.pickupDate!).getTime()) /
-            (1000 * 60 * 60 * 24)
-        );
+        if (!vehicle) return;
+
+        // Calculate price using utility
+        const calculation = calculateRentalPrice({
+            vehicle: vehicle as any, // Type compatibility
+            pickupDate: new Date(formData.pickupDate!),
+            dropDate: new Date(formData.dropDate!)
+        });
+
         const newBooking: Booking = {
             id: `b${Date.now()}`,
             customerId: formData.customerId!,
@@ -136,8 +143,23 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
             pickupDate: formData.pickupDate!,
             dropDate: formData.dropDate!,
             status: "Reserved",
-            totalAmount: (vehicle?.pricePerDay || 0) * days,
-            createdAt: new Date().toISOString().slice(0, 10),
+            totalAmount: calculation.total,
+            startOdometer: parseInt(formData.startOdometer as any) || vehicle?.mileage || 0,
+            fuelLevel: {
+                start: parseInt(formData.fuelLevel as any) || 100,
+                end: 0 // Will be updated on return
+            },
+            charges: { // Store the breakdown
+                base: calculation.baseRate,
+                extraKm: calculation.extraKmCharge,
+                lateReturn: calculation.lateReturnCharge,
+                fuelRefill: calculation.fuelRefillCharge,
+                damage: calculation.damageCharge,
+                securityDeposit: calculation.securityDeposit,
+                tax: calculation.tax,
+                total: calculation.total
+            },
+            createdAt: new Date().toISOString(),
             notes: formData.notes || "",
         };
         setAllBookings((prev) => [newBooking, ...prev]);
@@ -246,10 +268,10 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
                                                 {vehicle ? `${vehicle.brand} ${vehicle.model}` : "—"}
                                             </TableCell>
                                             <TableCell className="text-sm">
-                                                {new Date(booking.pickupDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                                                {new Date(booking.pickupDate).toLocaleString("en-IN", { dateStyle: 'medium', timeStyle: 'short' })}
                                             </TableCell>
                                             <TableCell className="text-sm">
-                                                {new Date(booking.dropDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                                                {new Date(booking.dropDate).toLocaleString("en-IN", { dateStyle: 'medium', timeStyle: 'short' })}
                                             </TableCell>
                                             <TableCell>
                                                 <StatusBadge status={booking.status} variant="booking" />
@@ -315,13 +337,13 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                                <Label>Pickup Date *</Label>
-                                <Input type="date" value={formData.pickupDate || ""} onChange={(e) => setFormData({ ...formData, pickupDate: e.target.value })} />
+                                <Label>Pickup Date & Time *</Label>
+                                <Input type="datetime-local" value={formData.pickupDate || ""} onChange={(e) => setFormData({ ...formData, pickupDate: e.target.value })} />
                                 {formErrors.pickupDate && <p className="text-xs text-destructive">{formErrors.pickupDate}</p>}
                             </div>
                             <div className="space-y-1.5">
-                                <Label>Drop Date *</Label>
-                                <Input type="date" value={formData.dropDate || ""} onChange={(e) => setFormData({ ...formData, dropDate: e.target.value })} />
+                                <Label>Drop Date & Time *</Label>
+                                <Input type="datetime-local" value={formData.dropDate || ""} onChange={(e) => setFormData({ ...formData, dropDate: e.target.value })} />
                                 {formErrors.dropDate && <p className="text-xs text-destructive">{formErrors.dropDate}</p>}
                             </div>
                         </div>
@@ -338,18 +360,60 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
                                 </SelectContent>
                             </Select>
                             {formErrors.vehicleId && <p className="text-xs text-destructive">{formErrors.vehicleId}</p>}
-                            {formData.vehicleId && formData.pickupDate && formData.dropDate && (
-                                <p className="text-xs text-muted-foreground">
-                                    Estimated total: {formatCurrency(
-                                        (getVehicleById(formData.vehicleId)?.pricePerDay || 0) *
-                                        Math.ceil(
-                                            (new Date(formData.dropDate).getTime() - new Date(formData.pickupDate).getTime()) /
-                                            86400000
-                                        )
-                                    )}
-                                </p>
-                            )}
+                            {formData.vehicleId && formData.pickupDate && formData.dropDate && (() => {
+                                const vehicle = getVehicleById(formData.vehicleId);
+                                if (!vehicle) return null;
+                                const calculation = calculateRentalPrice({
+                                    vehicle: vehicle as any,
+                                    pickupDate: new Date(formData.pickupDate),
+                                    dropDate: new Date(formData.dropDate)
+                                });
+                                return (
+                                    <div className="mt-2 text-xs border rounded p-2 bg-muted/50">
+                                        <div className="flex justify-between mb-1">
+                                            <span>Base Rate:</span>
+                                            <span>{formatCurrency(calculation.baseRate)}</span>
+                                        </div>
+                                        <div className="flex justify-between mb-1 text-muted-foreground">
+                                            <span>Tax (18%):</span>
+                                            <span>{formatCurrency(calculation.tax)}</span>
+                                        </div>
+                                        <div className="flex justify-between font-semibold border-t pt-1 mt-1">
+                                            <span>Total Estimate:</span>
+                                            <span>{formatCurrency(calculation.total)}</span>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </div>
+
+                        {formData.vehicleId && (
+                            <div className="grid grid-cols-2 gap-3 p-3 bg-muted/30 rounded-md">
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs">Start Odometer (km)</Label>
+                                    <Input
+                                        type="number"
+                                        value={formData.startOdometer || getVehicleById(formData.vehicleId)?.mileage || ""}
+                                        onChange={(e) => setFormData({ ...formData, startOdometer: parseInt(e.target.value) })}
+                                        className="h-8"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs">Initial Fuel (%)</Label>
+                                    <Input
+                                        type="number"
+                                        min="0" max="100"
+                                        value={formData.fuelLevel?.start || 100}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            fuelLevel: { ...formData.fuelLevel!, start: parseInt(e.target.value) }
+                                        })}
+                                        className="h-8"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         <div className="space-y-1.5">
                             <Label>Notes</Label>
                             <Textarea value={formData.notes || ""} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Any additional notes..." />
@@ -385,8 +449,8 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
                                     {[
                                         ["Customer", customer?.name || "—"],
                                         ["Vehicle", vehicle ? `${vehicle.brand} ${vehicle.model}` : "—"],
-                                        ["Pickup", new Date(selectedBooking.pickupDate).toLocaleDateString("en-IN")],
-                                        ["Drop", new Date(selectedBooking.dropDate).toLocaleDateString("en-IN")],
+                                        ["Pickup", new Date(selectedBooking.pickupDate).toLocaleString("en-IN", { dateStyle: 'medium', timeStyle: 'short' })],
+                                        ["Drop", new Date(selectedBooking.dropDate).toLocaleString("en-IN", { dateStyle: 'medium', timeStyle: 'short' })],
                                         ["Duration", `${days} day${days > 1 ? "s" : ""}`],
                                         ["Total", formatCurrency(selectedBooking.totalAmount)],
                                     ].map(([label, value]) => (
@@ -445,6 +509,6 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 }

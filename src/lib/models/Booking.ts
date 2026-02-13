@@ -6,8 +6,30 @@ export interface IBooking extends Document {
     vehicleId: string; // Reference to Vehicle
     pickupDate: Date;
     dropDate: Date;
+    actualDropDate?: Date;
     status: string;
-    totalAmount: number;
+    totalAmount: number; // Final calculated amount
+
+    // Usage Details
+    startOdometer?: number;
+    endOdometer?: number;
+    fuelLevel?: {
+        start: number; // percentage
+        end: number;
+    };
+
+    // Charge Breakdown
+    charges?: {
+        base: number;
+        extraKm: number;
+        lateReturn: number;
+        fuelRefill: number;
+        damage: number;
+        securityDeposit: number;
+        tax: number;
+        total: number;
+    };
+
     notes: string;
     id: string;
 }
@@ -27,11 +49,31 @@ const bookingSchema = new Schema<IBooking>(
         },
         pickupDate: { type: Date, required: true },
         dropDate: { type: Date, required: true },
+        actualDropDate: { type: Date },
         status: {
             type: String,
             default: 'Pending',
         },
         totalAmount: { type: Number, required: true },
+
+        startOdometer: { type: Number },
+        endOdometer: { type: Number },
+        fuelLevel: {
+            start: { type: Number },
+            end: { type: Number },
+        },
+
+        charges: {
+            base: { type: Number },
+            extraKm: { type: Number },
+            lateReturn: { type: Number },
+            fuelRefill: { type: Number },
+            damage: { type: Number },
+            securityDeposit: { type: Number },
+            tax: { type: Number },
+            total: { type: Number },
+        },
+
         notes: { type: String },
     },
     { timestamps: true }

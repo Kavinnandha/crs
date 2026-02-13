@@ -19,6 +19,15 @@ export interface Vehicle {
   transmission: TransmissionType;
   status: VehicleStatus;
   pricePerDay: number;
+  rates?: {
+    hourly: number;
+    daily: number;
+    weekly: number;
+  };
+  extraCharges?: {
+    lateReturnPerHour: number;
+    extraKm: number;
+  };
   imageUrl: string;
   mileage: number;
   color: string;
@@ -48,8 +57,30 @@ export interface Booking {
   vehicleId: string;
   pickupDate: string;
   dropDate: string;
+  actualDropDate?: string;
   status: BookingStatus;
   totalAmount: number;
+
+  // Usage
+  startOdometer?: number;
+  endOdometer?: number;
+  fuelLevel?: {
+    start: number;
+    end: number;
+  };
+
+  // Charges
+  charges?: {
+    base: number;
+    extraKm: number;
+    lateReturn: number;
+    fuelRefill: number;
+    damage: number;
+    securityDeposit: number;
+    tax: number;
+    total: number;
+  };
+
   createdAt: string;
   notes: string;
 }

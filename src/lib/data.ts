@@ -17,6 +17,17 @@ export async function getVehicles() {
     }
 }
 
+export async function getPayments() {
+    await dbConnect();
+    try {
+        const payments = await Payment.find({}).sort({ createdAt: -1 }).lean();
+        return JSON.parse(JSON.stringify(payments));
+    } catch (error) {
+        console.error('Error fetching payments:', error);
+        return [];
+    }
+}
+
 export async function getDashboardStats() {
     await dbConnect();
     try {

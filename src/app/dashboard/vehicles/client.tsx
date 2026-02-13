@@ -25,7 +25,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
-import { Vehicle, VehicleCategory, FuelType, TransmissionType, VehicleStatus } from "@/types";
+import { Vehicle, VehicleCategory, FuelType, TransmissionType, VehicleStatus, Booking } from "@/types";
 
 type SortKey = "brand" | "year" | "pricePerDay" | "status" | "category";
 type SortDir = "asc" | "desc";
@@ -42,9 +42,10 @@ const SortHeader = ({ label, sortKeyName, onClick }: { label: string; sortKeyNam
 
 interface VehiclesClientProps {
     initialVehicles: Vehicle[];
+    bookings: Booking[];
 }
 
-export default function VehiclesClient({ initialVehicles }: VehiclesClientProps) {
+export default function VehiclesClient({ initialVehicles, bookings }: VehiclesClientProps) {
     const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -412,39 +413,85 @@ export default function VehiclesClient({ initialVehicles }: VehiclesClientProps)
 
             {/* View Dialog */}
             <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Vehicle Details</DialogTitle>
                     </DialogHeader>
                     {selectedVehicle && (
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                                    <Car className="h-6 w-6 text-primary" />
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10">
+                                    <Car className="h-8 w-8 text-primary" />
                                 </div>
                                 <div>
-                                    <p className="text-lg font-semibold">{selectedVehicle.brand} {selectedVehicle.model}</p>
-                                    <p className="text-sm text-muted-foreground">{selectedVehicle.year} • {selectedVehicle.color}</p>
+                                    <h3 className="text-xl font-bold">{selectedVehicle.brand} {selectedVehicle.model}</h3>
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                        <Badge variant="outline">{selectedVehicle.registrationNumber}</Badge>
+                                        <span>•</span>
+                                        <span>{selectedVehicle.year}</span>
+                                        <span>•</span>
+                                        <StatusBadge status={selectedVehicle.status} variant="vehicle" />
+                                    </div>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-3 text-sm">
+
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
                                 {[
                                     ["Category", selectedVehicle.category],
-                                    ["Registration", selectedVehicle.registrationNumber],
                                     ["Fuel Type", selectedVehicle.fuelType],
                                     ["Transmission", selectedVehicle.transmission],
                                     ["Price/Day", formatCurrency(selectedVehicle.pricePerDay)],
+                                    ["Color", selectedVehicle.color],
                                     ["Mileage", `${selectedVehicle.mileage} km/l`],
                                 ].map(([label, value]) => (
                                     <div key={label as string}>
-                                        <p className="text-muted-foreground text-xs mb-0.5">{label}</p>
-                                        <p className="font-medium">{value}</p>
+                                        <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                                        <p className="font-medium text-sm">{value}</p>
                                     </div>
                                 ))}
                             </div>
-                            <div>
-                                <p className="text-muted-foreground text-xs mb-1">Status</p>
-                                <StatusBadge status={selectedVehicle.status} variant="vehicle" />
+
+                            <div className="space-y-3">
+                                <h4 className="font-semibold text-lg">Booking History</h4>
+                                {bookings.filter(b => b.vehicleId === selectedVehicle.id).length === 0 ? (
+                                    <div className="text-center py-8 text-muted-foreground border rounded-lg bg-muted/20">
+                                        No booking history available for this vehicle.
+                                    </div>
+                                ) : (
+                                    <div className="border rounded-lg overflow-hidden">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow className="bg-muted/50">
+                                                    <TableHead>Start Date</TableHead>
+                                                    <TableHead>End Date</TableHead>
+                                                    <TableHead>Status</TableHead>
+                                                    <TableHead className="text-right">Amount</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {bookings
+                                                    .filter(b => b.vehicleId === selectedVehicle.id)
+                                                    .sort((a, b) => new Date(b.pickupDate).getTime() - new Date(a.pickupDate).getTime())
+                                                    .map((booking) => (
+                                                        <TableRow key={booking.id}>
+                                                            <TableCell className="font-medium">
+                                                                {new Date(booking.pickupDate).toLocaleDateString("en-IN")}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {new Date(booking.dropDate).toLocaleDateString("en-IN")}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <StatusBadge status={booking.status} variant="booking" />
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                {formatCurrency(booking.totalAmount)}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
