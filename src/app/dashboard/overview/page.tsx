@@ -11,7 +11,7 @@ export default async function OverviewPage() {
     ]);
 
     return (
-        <div className="container py-8 max-w-7xl mx-auto">
+        <div className="container pb-8 max-w-7xl mx-auto">
             <OverviewClient
                 vehicles={vehicles}
                 bookings={bookings}

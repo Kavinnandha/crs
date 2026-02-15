@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
     LayoutDashboard, Car, Users, CalendarDays, CreditCard,
-    Wrench, BarChart3, Settings,
-    LogOut, HelpCircle, Sun, Moon
+    Wrench, BarChart3, ShieldCheck,
+    LogOut, Sun, Moon
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -17,6 +17,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
 
 const mainNavItems = [
     { href: "/dashboard/overview", label: "Dashboard", icon: LayoutDashboard },
@@ -26,8 +27,10 @@ const mainNavItems = [
     { href: "/dashboard/payments", label: "Payments", icon: CreditCard },
     { href: "/dashboard/maintenance", label: "Maintenance", icon: Wrench },
     { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
+    { href: "/dashboard/admins", label: "Admins", icon: ShieldCheck },
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const bottomNavItems: any[] = [];
 
 interface SidebarProps {
@@ -37,7 +40,7 @@ interface SidebarProps {
     setMobileOpen: (open: boolean) => void;
 }
 
-export function Sidebar({ collapsed, onToggle, mobileOpen, setMobileOpen }: SidebarProps) {
+export function Sidebar({ collapsed, mobileOpen, setMobileOpen }: SidebarProps) {
     const pathname = usePathname();
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
@@ -47,6 +50,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, setMobileOpen }: Side
     const isSidebarCollapsed = collapsed && !mobileOpen;
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 
@@ -75,6 +79,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, setMobileOpen }: Side
                     )}
                 >
                     <div className="relative flex h-10 w-10 items-center justify-center shrink-0 overflow-hidden rounded-full">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             src="/carzio.jpg"
                             alt="Carzio"
@@ -102,14 +107,14 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, setMobileOpen }: Side
                         const Icon = item.icon;
 
                         return (
-                            <Tooltip key={item.href} delayDuration={0}>
+                            <Tooltip key={item.href} delayDuration={100}>
                                 <TooltipTrigger asChild>
                                     <Link
                                         href={item.href}
                                         onClick={() => setMobileOpen(false)}
                                         className={cn(
-                                            "flex h-10 items-center gap-3 rounded-xl transition-all duration-300 group relative",
-                                            isSidebarCollapsed ? "w-10 mx-[14px] justify-center px-0" : "w-[calc(100%-24px)] mx-3 px-3 justify-start",
+                                            "flex h-10 items-center rounded-xl transition-all duration-300 group relative",
+                                            isSidebarCollapsed ? "w-10 mx-[14px] justify-center px-0 gap-0" : "w-[calc(100%-24px)] mx-3 px-3 justify-start gap-3",
                                             isActive
                                                 ? "bg-[#F5F3FF] text-[#7C3AED] dark:bg-slate-800 dark:text-[#A78BFA]"
                                                 : "text-[#64748B] hover:bg-white hover:text-[#1a1d2e] dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
@@ -145,14 +150,14 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, setMobileOpen }: Side
                         const Icon = item.icon;
 
                         return (
-                            <Tooltip key={item.label} delayDuration={0}>
+                            <Tooltip key={item.label} delayDuration={100}>
                                 <TooltipTrigger asChild>
                                     <Link
                                         href={item.href}
                                         onClick={() => setMobileOpen(false)}
                                         className={cn(
-                                            "flex h-10 items-center gap-3 rounded-xl transition-all duration-300",
-                                            isSidebarCollapsed ? "w-10 mx-[14px] justify-center px-0" : "w-[calc(100%-24px)] mx-3 px-3 justify-start",
+                                            "flex h-10 items-center rounded-xl transition-all duration-300",
+                                            isSidebarCollapsed ? "w-10 mx-[14px] justify-center px-0 gap-0" : "w-[calc(100%-24px)] mx-3 px-3 justify-start gap-3",
                                             isActive
                                                 ? "bg-[#F5F3FF] text-[#7C3AED] dark:bg-slate-800 dark:text-[#A78BFA]"
                                                 : "text-[#64748B] hover:bg-white hover:text-[#1a1d2e] dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
@@ -179,13 +184,13 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, setMobileOpen }: Side
                     })}
 
                     {/* Theme Switcher */}
-                    <Tooltip delayDuration={0}>
+                    <Tooltip delayDuration={100}>
                         <TooltipTrigger asChild>
                             <button
                                 onClick={toggleTheme}
                                 className={cn(
-                                    "flex h-10 items-center gap-3 rounded-xl transition-all duration-300",
-                                    isSidebarCollapsed ? "w-10 mx-[14px] justify-center px-0" : "w-[calc(100%-24px)] mx-3 px-3 justify-start",
+                                    "flex h-10 items-center rounded-xl transition-all duration-300",
+                                    isSidebarCollapsed ? "w-10 mx-[14px] justify-center px-0 gap-0" : "w-[calc(100%-24px)] mx-3 px-3 justify-start gap-3",
                                     "text-[#64748B] hover:bg-white hover:text-[#1a1d2e] dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
                                 )}
                             >
@@ -211,12 +216,13 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, setMobileOpen }: Side
                     </Tooltip>
 
                     {/* Logout */}
-                    <Tooltip delayDuration={0}>
+                    <Tooltip delayDuration={100}>
                         <TooltipTrigger asChild>
                             <button
+                                onClick={() => signOut({ callbackUrl: "/login" })}
                                 className={cn(
-                                    "flex h-10 items-center gap-3 rounded-xl transition-all duration-300",
-                                    isSidebarCollapsed ? "w-10 mx-[14px] justify-center px-0" : "w-[calc(100%-24px)] mx-3 px-3 justify-start",
+                                    "flex h-10 items-center rounded-xl transition-all duration-300",
+                                    isSidebarCollapsed ? "w-10 mx-[14px] justify-center px-0 gap-0" : "w-[calc(100%-24px)] mx-3 px-3 justify-start gap-3",
                                     "text-[#64748B] hover:bg-red-50 hover:text-red-500 dark:text-slate-400 dark:hover:bg-red-950/20"
                                 )}
                             >
@@ -250,7 +256,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, setMobileOpen }: Side
                 >
                     <Avatar className="h-9 w-9 shrink-0 ring-2 ring-[#F5F3FF] dark:ring-slate-800">
                         <AvatarImage src="https://github.com/shadcn.png" />
-                        <AvatarFallback className="bg-[#F5F3FF] text-[#7C3AED] text-xs font-medium">KN</AvatarFallback>
+                        <AvatarFallback className="bg-[#F5F3FF] dark:bg-violet-950/30 text-[#7C3AED] text-xs font-medium">KN</AvatarFallback>
                     </Avatar>
                     <div
                         className={cn(

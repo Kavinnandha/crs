@@ -2,8 +2,8 @@
 
 import { useState, useMemo, useEffect } from "react";
 import {
-    Car, Battery, Zap, Droplets, Gauge, Calendar, DollarSign,
-    Plus, Search, Filter, ArrowUpDown, MoreHorizontal, Pencil, Trash2, Eye, LayoutGrid, List, SlidersHorizontal,
+    Plus, MoreHorizontal, Pencil, Trash2, Eye, LayoutGrid, List,
+    Calendar, Zap, Gauge, Droplets
 } from "lucide-react";
 import { useDashboard } from "@/components/layout/dashboard-layout";
 import { PageHeader } from "@/components/layout/page-header";
@@ -22,22 +22,21 @@ import {
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Vehicle, Booking } from "@/types";
+import { Vehicle } from "@/types";
 import { deleteVehicle } from "@/lib/actions";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+
 
 interface VehiclesClientProps {
     initialVehicles: Vehicle[];
-    bookings: Booking[];
 }
 
 type SortKey = "brand" | "pricePerDay" | "year" | "status" | "category";
 type SortDir = "asc" | "desc";
 
-export default function VehiclesClient({ initialVehicles, bookings }: VehiclesClientProps) {
+export default function VehiclesClient({ initialVehicles }: VehiclesClientProps) {
     const { setHeaderAction, searchTerm } = useDashboard();
-    const router = useRouter(); // Use router for navigation if needed, though Links are better
+    // const router = useRouter(); 
     const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
 
     // Sync vehicles when initialVehicles changes (e.g. after revalidate)
@@ -47,8 +46,8 @@ export default function VehiclesClient({ initialVehicles, bookings }: VehiclesCl
 
     const [statusFilter, setStatusFilter] = useState<string>("all");
     const [categoryFilter, setCategoryFilter] = useState<string>("all");
-    const [sortKey, setSortKey] = useState<SortKey>("brand");
-    const [sortDir, setSortDir] = useState<SortDir>("asc");
+    const [sortKey] = useState<SortKey>("brand");
+    const [sortDir] = useState<SortDir>("asc");
     const [viewMode, setViewMode] = useState<"table" | "card">("card");
 
     // Delete state
@@ -110,32 +109,25 @@ export default function VehiclesClient({ initialVehicles, bookings }: VehiclesCl
     };
 
     // Helper functions for styles
-    const getStatusStyle = (status: string) => {
-        switch (status) {
-            case 'Available': return 'bg-emerald-50 text-emerald-600 border-emerald-200';
-            case 'Rented': return 'bg-blue-50 text-blue-600 border-blue-200';
-            case 'Maintenance': return 'bg-amber-50 text-amber-600 border-amber-200';
-            default: return 'bg-gray-50 text-gray-600 border-gray-200';
-        }
-    };
+
 
     const getCategoryStyle = (category: string) => {
         switch (category) {
-            case 'SUV': return 'bg-violet-50 text-violet-600 border-violet-200';
-            case 'Sedan': return 'bg-sky-50 text-sky-600 border-sky-200';
-            case 'Hatchback': return 'bg-teal-50 text-teal-600 border-teal-200';
-            case 'Luxury': return 'bg-rose-50 text-rose-600 border-rose-200';
-            default: return 'bg-gray-50 text-gray-600 border-gray-200';
+            case 'SUV': return 'bg-violet-50 dark:bg-violet-950/30 text-violet-600 border-violet-200 dark:border-violet-800';
+            case 'Sedan': return 'bg-sky-50 dark:bg-sky-950/30 text-sky-600 border-sky-200 dark:border-sky-800';
+            case 'Hatchback': return 'bg-teal-50 dark:bg-teal-950/30 text-teal-600 border-teal-200 dark:border-teal-800';
+            case 'Luxury': return 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 border-rose-200 dark:border-rose-800';
+            default: return 'bg-gray-50 dark:bg-gray-950/30 text-gray-600 border-gray-200 dark:border-gray-800';
         }
     };
 
     const filtersContent = (
         <div className="flex flex-wrap items-center gap-2 justify-end">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[110px] sm:w-[140px] h-9 rounded-xl border-[#E8E5F0] bg-white text-sm text-[#64748B] shadow-none focus:ring-[#7C3AED]/20">
+                <SelectTrigger className="w-[110px] sm:w-[140px] h-9 rounded-xl border-[#E8E5F0] dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-[#64748B] dark:text-slate-300 shadow-none focus:ring-[#7C3AED]/20">
                     <SelectValue placeholder="All Status" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-[#E8E5F0] shadow-lg">
+                <SelectContent className="rounded-xl border-border shadow-lg">
                     <SelectItem value="all" className="rounded-lg">All Status</SelectItem>
                     <SelectItem value="Available" className="rounded-lg">Available</SelectItem>
                     <SelectItem value="Rented" className="rounded-lg">Rented</SelectItem>
@@ -144,10 +136,10 @@ export default function VehiclesClient({ initialVehicles, bookings }: VehiclesCl
             </Select>
 
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[120px] sm:w-[150px] h-9 rounded-xl border-[#E8E5F0] bg-white text-sm text-[#64748B] shadow-none focus:ring-[#7C3AED]/20">
+                <SelectTrigger className="w-[120px] sm:w-[150px] h-9 rounded-xl border-[#E8E5F0] dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-[#64748B] dark:text-slate-300 shadow-none focus:ring-[#7C3AED]/20">
                     <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-[#E8E5F0] shadow-lg">
+                <SelectContent className="rounded-xl border-border shadow-lg">
                     <SelectItem value="all" className="rounded-lg">All Categories</SelectItem>
                     <SelectItem value="Hatchback" className="rounded-lg">Hatchback</SelectItem>
                     <SelectItem value="Sedan" className="rounded-lg">Sedan</SelectItem>
@@ -156,13 +148,13 @@ export default function VehiclesClient({ initialVehicles, bookings }: VehiclesCl
                 </SelectContent>
             </Select>
 
-            <div className="flex items-center gap-0.5 ml-1 bg-[#F8F9FC] rounded-xl p-0.5 border border-[#E8E5F0]">
+            <div className="flex items-center gap-0.5 ml-1 bg-muted rounded-xl p-0.5 border border-border">
                 <Button variant="ghost" size="icon" onClick={() => setViewMode("table")}
-                    className={`h-8 w-8 rounded-lg ${viewMode === "table" ? "bg-white shadow-sm text-[#7C3AED]" : "text-[#94a3b8] hover:text-[#64748B]"}`}>
+                    className={`h-8 w-8 rounded-lg ${viewMode === "table" ? "bg-white dark:bg-slate-700 shadow-sm text-[#7C3AED]" : "text-[#94a3b8] hover:text-[#64748B]"}`}>
                     <List className="h-4 w-4" />
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => setViewMode("card")}
-                    className={`h-8 w-8 rounded-lg ${viewMode === "card" ? "bg-white shadow-sm text-[#7C3AED]" : "text-[#94a3b8] hover:text-[#64748B]"}`}>
+                    className={`h-8 w-8 rounded-lg ${viewMode === "card" ? "bg-white dark:bg-slate-700 shadow-sm text-[#7C3AED]" : "text-[#94a3b8] hover:text-[#64748B]"}`}>
                     <LayoutGrid className="h-4 w-4" />
                 </Button>
             </div>
@@ -185,7 +177,7 @@ export default function VehiclesClient({ initialVehicles, bookings }: VehiclesCl
             </div>
 
             {viewMode === "table" ? (
-                <Card className="bg-white rounded-2xl border border-[#E8E5F0] shadow-sm overflow-hidden">
+                <Card className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
                     <CardContent className="p-0">
                         <Table>
                             <TableHeader>
@@ -207,18 +199,13 @@ export default function VehiclesClient({ initialVehicles, bookings }: VehiclesCl
                                     </TableRow>
                                 ) : (
                                     filteredVehicles.map((vehicle) => (
-                                        <TableRow key={vehicle.id} className="border-[#E8E5F0] hover:bg-[#F8F9FC]">
+                                        <TableRow key={vehicle.id} className="border-border hover:bg-muted/50">
                                             <TableCell>
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-10 w-16 rounded-lg bg-gray-100 overflow-hidden">
-                                                        <img src={vehicle.imageUrl} alt={vehicle.model} className="h-full w-full object-cover" />
-                                                    </div>
-                                                    <div>
-                                                        <Link href={`/dashboard/vehicles/${vehicle.id}`} className="hover:underline">
-                                                            <p className="font-medium text-sm text-[#1a1d2e]">{vehicle.brand} {vehicle.model}</p>
-                                                        </Link>
-                                                        <p className="text-xs text-[#94a3b8]">{vehicle.year} • {vehicle.transmission} • {vehicle.fuelType}</p>
-                                                    </div>
+                                                <div>
+                                                    <Link href={`/dashboard/vehicles/${vehicle.id}`} className="hover:underline">
+                                                        <p className="font-medium text-sm text-[#1a1d2e] dark:text-white">{vehicle.brand} {vehicle.model}</p>
+                                                    </Link>
+                                                    <p className="text-xs text-[#94a3b8]">{vehicle.year} • {vehicle.transmission} • {vehicle.fuelType}</p>
                                                 </div>
                                             </TableCell>
                                             <TableCell>
@@ -230,15 +217,15 @@ export default function VehiclesClient({ initialVehicles, bookings }: VehiclesCl
                                             <TableCell>
                                                 <StatusBadge status={vehicle.status} variant="vehicle" />
                                             </TableCell>
-                                            <TableCell className="font-medium text-[#1a1d2e]">₹{vehicle.pricePerDay}</TableCell>
+                                            <TableCell className="font-medium text-[#1a1d2e] dark:text-white">₹{vehicle.pricePerDay}</TableCell>
                                             <TableCell>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-[#94a3b8] hover:text-[#64748B] hover:bg-[#F8F9FC] rounded-lg">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-[#94a3b8] hover:text-[#64748B] hover:bg-[#F8F9FC] dark:hover:bg-slate-800 rounded-lg">
                                                             <MoreHorizontal className="h-4 w-4" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end" className="rounded-xl border-[#E8E5F0] shadow-lg">
+                                                    <DropdownMenuContent align="end" className="rounded-xl border-border shadow-lg">
                                                         <Link href={`/dashboard/vehicles/${vehicle.id}`}>
                                                             <DropdownMenuItem className="rounded-lg cursor-pointer">
                                                                 <Eye className="mr-2 h-4 w-4" /> View Details
@@ -249,7 +236,7 @@ export default function VehiclesClient({ initialVehicles, bookings }: VehiclesCl
                                                                 <Pencil className="mr-2 h-4 w-4" /> Edit
                                                             </DropdownMenuItem>
                                                         </Link>
-                                                        <DropdownMenuSeparator className="bg-[#E8E5F0]" />
+                                                        <DropdownMenuSeparator className="bg-border" />
                                                         <DropdownMenuItem
                                                             className="text-red-500 hover:text-red-600 rounded-lg cursor-pointer"
                                                             onClick={() => confirmDelete(vehicle)}
@@ -269,76 +256,68 @@ export default function VehiclesClient({ initialVehicles, bookings }: VehiclesCl
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {filteredVehicles.map((vehicle) => (
-                        <Card key={vehicle.id} className="group relative overflow-hidden transition-all hover:shadow-md border-[#E8E5F0] dark:border-slate-800 bg-white dark:bg-slate-900">
-                            <CardContent className="p-5 flex flex-col h-full">
+                        <Card key={vehicle.id} className="group relative overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 border-border bg-card rounded-3xl">
+                            <CardContent className="p-6 flex flex-col h-full">
                                 <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
                                             <StatusBadge status={vehicle.status} variant="vehicle" />
-                                            <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${getCategoryStyle(vehicle.category)}`}>
-                                                {vehicle.category}
-                                            </span>
+                                            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{vehicle.category}</span>
                                         </div>
-                                        <Link href={`/dashboard/vehicles/${vehicle.id}`} className="hover:underline">
-                                            <h3 className="font-semibold text-xl text-[#1a1d2e] dark:text-white">{vehicle.brand} {vehicle.model}</h3>
+                                        <Link href={`/dashboard/vehicles/${vehicle.id}`} className="block hover:text-[#7C3AED] transition-colors">
+                                            <h3 className="font-bold text-lg text-[#1a1d2e] dark:text-white line-clamp-1">{vehicle.brand} {vehicle.model}</h3>
                                         </Link>
-                                        <p className="text-sm text-muted-foreground">{vehicle.registrationNumber}</p>
+                                        <p className="text-xs text-muted-foreground font-mono">{vehicle.registrationNumber}</p>
                                     </div>
-                                    <div className="flex flex-col items-end">
-                                        <div className="text-lg font-bold text-[#7C3AED]">₹{vehicle.pricePerDay}</div>
-                                        <span className="text-xs text-muted-foreground">/day</span>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3 mb-5">
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl flex flex-col gap-1">
-                                        <span className="text-xs text-muted-foreground">Year</span>
-                                        <span className="text-sm font-medium">{vehicle.year}</span>
-                                    </div>
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl flex flex-col gap-1">
-                                        <span className="text-xs text-muted-foreground">Fuel</span>
-                                        <div className="flex items-center gap-1.5">
-                                            <Zap className="h-3.5 w-3.5 text-amber-500" />
-                                            <span className="text-sm font-medium">{vehicle.fuelType}</span>
-                                        </div>
-                                    </div>
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl flex flex-col gap-1">
-                                        <span className="text-xs text-muted-foreground">Transmission</span>
-                                        <div className="flex items-center gap-1.5">
-                                            <Gauge className="h-3.5 w-3.5 text-blue-500" />
-                                            <span className="text-sm font-medium">{vehicle.transmission}</span>
-                                        </div>
-                                    </div>
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl flex flex-col gap-1">
-                                        <span className="text-xs text-muted-foreground">Color</span>
-                                        <span className="text-sm font-medium">{vehicle.color}</span>
+                                    <div className="text-right">
+                                        <div className="text-xl font-bold text-[#7C3AED]">₹{vehicle.pricePerDay}</div>
+                                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">/ day</span>
                                     </div>
                                 </div>
 
-                                <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
-                                    <Link href={`/dashboard/vehicles/${vehicle.id}`}>
-                                        <Button variant="outline" size="sm" className="h-8 text-xs rounded-lg border-slate-200">
-                                            Details
+                                <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-6">
+                                    <div className="flex items-center gap-2 text-sm text-[#64748B] dark:text-slate-400">
+                                        <Calendar className="h-4 w-4 text-[#94a3b8]" />
+                                        <span>{vehicle.year}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm text-[#64748B] dark:text-slate-400">
+                                        <Zap className="h-4 w-4 text-[#94a3b8]" />
+                                        <span>{vehicle.fuelType}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm text-[#64748B] dark:text-slate-400">
+                                        <Gauge className="h-4 w-4 text-[#94a3b8]" />
+                                        <span>{vehicle.transmission}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm text-[#64748B] dark:text-slate-400">
+                                        <Droplets className="h-4 w-4 text-[#94a3b8]" />
+                                        <span>{vehicle.color}</span>
+                                    </div>
+                                </div>
+
+                                <div className="mt-auto pt-4 border-t border-border flex items-center justify-between">
+                                    <Link href={`/dashboard/vehicles/${vehicle.id}`} className="w-full mr-2">
+                                        <Button variant="outline" className="w-full h-9 text-xs font-medium rounded-xl border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
+                                            View Details
                                         </Button>
                                     </Link>
+
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-[#94a3b8] hover:text-[#64748B] hover:bg-slate-100 rounded-lg">
+                                            <Button variant="ghost" size="icon" className="h-9 w-9 text-[#94a3b8] hover:text-[#1a1d2e] hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl shrink-0">
                                                 <MoreHorizontal className="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="rounded-xl border-[#E8E5F0] shadow-lg">
+                                        <DropdownMenuContent align="end" className="rounded-xl border-border shadow-lg p-1 w-32">
                                             <Link href={`/dashboard/vehicles/${vehicle.id}/edit`}>
-                                                <DropdownMenuItem className="rounded-lg cursor-pointer">
-                                                    <Pencil className="mr-2 h-4 w-4" /> Edit
+                                                <DropdownMenuItem className="rounded-lg cursor-pointer text-xs font-medium">
+                                                    <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
                                                 </DropdownMenuItem>
                                             </Link>
-                                            <DropdownMenuSeparator className="bg-[#E8E5F0]" />
                                             <DropdownMenuItem
-                                                className="text-red-500 hover:text-red-600 rounded-lg cursor-pointer"
+                                                className="text-red-500 hover:text-red-600 focus:text-red-600 focus:bg-red-50 rounded-lg cursor-pointer text-xs font-medium"
                                                 onClick={() => confirmDelete(vehicle)}
                                             >
-                                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
@@ -350,16 +329,16 @@ export default function VehiclesClient({ initialVehicles, bookings }: VehiclesCl
             )}
 
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-                <DialogContent className="max-w-sm rounded-2xl border-[#E8E5F0] shadow-xl">
+                <DialogContent className="max-w-sm rounded-2xl border-border shadow-xl">
                     <DialogHeader>
-                        <DialogTitle className="text-[#1a1d2e] text-lg font-semibold">Delete Vehicle</DialogTitle>
+                        <DialogTitle className="text-[#1a1d2e] dark:text-white text-lg font-semibold">Delete Vehicle</DialogTitle>
                         <DialogDescription className="text-[#94a3b8]">
                             Are you sure you want to delete {vehicleToDelete?.brand} {vehicleToDelete?.model}?
                             This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteOpen(false)} className="rounded-xl border-[#E8E5F0] text-[#64748B] hover:bg-[#F8F9FC] shadow-none">Cancel</Button>
+                        <Button variant="outline" onClick={() => setDeleteOpen(false)} className="rounded-xl border-border text-muted-foreground hover:bg-muted shadow-none">Cancel</Button>
                         <Button variant="destructive" onClick={handleDelete} className="rounded-xl shadow-sm">Delete</Button>
                     </DialogFooter>
                 </DialogContent>

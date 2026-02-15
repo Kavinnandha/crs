@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+
 import { updateBooking } from "@/lib/actions";
-import { Vehicle, Customer, Booking, BookingStatus } from "@/types";
+import { Vehicle, Customer, Booking } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,10 +22,10 @@ interface EditBookingClientProps {
 }
 
 export default function EditBookingClient({ booking, vehicles, customers }: EditBookingClientProps) {
-    const router = useRouter();
+
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [formData, setFormData] = useState<any>({
+    const [formData, setFormData] = useState<Partial<Booking>>({
         vehicleId: booking.vehicleId,
         pickupDate: booking.pickupDate,
         dropDate: booking.dropDate
@@ -36,9 +36,10 @@ export default function EditBookingClient({ booking, vehicles, customers }: Edit
         const vehicle = vehicles.find(v => v.id === formData.vehicleId);
         if (!vehicle) return null;
         return calculateRentalPrice({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             vehicle: vehicle as any,
-            pickupDate: new Date(formData.pickupDate),
-            dropDate: new Date(formData.dropDate)
+            pickupDate: new Date(formData.pickupDate!),
+            dropDate: new Date(formData.dropDate!)
         });
     }, [formData.vehicleId, formData.pickupDate, formData.dropDate, vehicles]);
 
@@ -54,8 +55,8 @@ export default function EditBookingClient({ booking, vehicles, customers }: Edit
 
         try {
             await updateBooking(booking.id, form);
-        } catch (e: any) {
-            setError(e.message || "Something went wrong");
+        } catch (e) {
+            setError((e as Error).message || "Something went wrong");
             setSubmitting(false);
         }
     }
@@ -71,14 +72,14 @@ export default function EditBookingClient({ booking, vehicles, customers }: Edit
                 <h1 className="text-2xl font-bold tracking-tight">Edit Booking</h1>
             </div>
 
-            <Card className="border-[#E8E5F0] shadow-sm">
+            <Card className="border-border shadow-sm">
                 <CardHeader>
                     <CardTitle>Booking Details</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {error && (
-                            <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-lg">
                                 {error}
                             </div>
                         )}
@@ -153,7 +154,7 @@ export default function EditBookingClient({ booking, vehicles, customers }: Edit
                         </div>
 
                         {calculation && (
-                            <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 space-y-2 text-sm">
+                            <div className="p-4 rounded-lg bg-muted border border-border space-y-2 text-sm">
                                 <div className="flex justify-between font-medium text-base">
                                     <span>New Total Estimate</span>
                                     <span>{formatCurrency(calculation.total)}</span>

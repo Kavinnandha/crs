@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 import { updatePayment } from "@/lib/actions";
 import { Payment, Booking, Customer } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,7 @@ interface EditPaymentClientProps {
     customers: Customer[];
 }
 
-export default function EditPaymentClient({ payment, bookings, customers }: EditPaymentClientProps) {
-    const router = useRouter();
+export default function EditPaymentClient({ payment, bookings }: EditPaymentClientProps) {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
@@ -32,8 +31,8 @@ export default function EditPaymentClient({ payment, bookings, customers }: Edit
         paidAt: payment.paidAt ? new Date(payment.paidAt).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16)
     });
 
-    const bookingMap = new Map(bookings.map(b => [b.id, b]));
-    const customerMap = new Map(customers.map(c => [c.id, c]));
+
+
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -50,8 +49,8 @@ export default function EditPaymentClient({ payment, bookings, customers }: Edit
 
         try {
             await updatePayment(payment.id, form);
-        } catch (e: any) {
-            setError(e.message || "Something went wrong");
+        } catch (e) {
+            setError((e as Error).message || "Something went wrong");
             setSubmitting(false);
         }
     }
@@ -67,14 +66,14 @@ export default function EditPaymentClient({ payment, bookings, customers }: Edit
                 <h1 className="text-2xl font-bold tracking-tight">Edit Payment</h1>
             </div>
 
-            <Card className="border-[#E8E5F0] shadow-sm">
+            <Card className="border-border shadow-sm">
                 <CardHeader>
                     <CardTitle>Payment Details</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {error && (
-                            <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-lg">
                                 {error}
                             </div>
                         )}
@@ -110,7 +109,8 @@ export default function EditPaymentClient({ payment, bookings, customers }: Edit
 
                             <div className="space-y-2">
                                 <Label htmlFor="mode">Payment Mode</Label>
-                                <Select name="mode" value={formData.mode} onValueChange={(v: any) => setFormData({ ...formData, mode: v })}>
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                <Select name="mode" value={formData.mode} onValueChange={(v) => setFormData({ ...formData, mode: v as any })}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
@@ -124,7 +124,8 @@ export default function EditPaymentClient({ payment, bookings, customers }: Edit
 
                             <div className="space-y-2">
                                 <Label htmlFor="status">Status</Label>
-                                <Select name="status" value={formData.status} onValueChange={(v: any) => setFormData({ ...formData, status: v })}>
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                <Select name="status" value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v as any })}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>

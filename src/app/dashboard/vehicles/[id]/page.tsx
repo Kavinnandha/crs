@@ -1,14 +1,14 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { getVehicleById, getBookings } from "@/lib/data";
 import { notFound } from "next/navigation";
-import { Booking, Vehicle } from "@/types";
+import { Booking } from "@/types";
 import { StatusBadge } from "@/components/tables/status-badge";
 import { formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Pencil, ArrowLeft, Car, Calendar, DollarSign, Activity } from "lucide-react";
+import { Pencil, ArrowLeft, DollarSign, Activity } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export default async function VehicleDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -48,7 +48,7 @@ export default async function VehicleDetailsPage({ params }: { params: Promise<{
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Details Card */}
-                <Card className="lg:col-span-2 shadow-sm border-[#E8E5F0] card-full-details">
+                <Card className="lg:col-span-2 shadow-sm border-[#E8E5F0] dark:border-slate-800 card-full-details">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle>Vehicle Information</CardTitle>
                         <StatusBadge status={vehicle.status} variant="vehicle" />
@@ -61,7 +61,7 @@ export default async function VehicleDetailsPage({ params }: { params: Promise<{
                             </div>
                             <div>
                                 <h4 className="text-sm font-medium text-muted-foreground mb-1">Category</h4>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border bg-slate-50 text-slate-600 border-slate-200">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700">
                                     {vehicle.category}
                                 </span>
                             </div>
@@ -89,13 +89,13 @@ export default async function VehicleDetailsPage({ params }: { params: Promise<{
 
                 {/* Sidebar Stats */}
                 <div className="space-y-6">
-                    <Card className="shadow-sm border-[#E8E5F0]">
+                    <Card className="shadow-sm border-[#E8E5F0] dark:border-slate-800">
                         <CardHeader>
                             <CardTitle>Pricing & Stats</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="flex items-center gap-4">
-                                <div className="h-10 w-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600">
+                                <div className="h-10 w-10 rounded-full bg-violet-100 dark:bg-violet-950/30 flex items-center justify-center text-violet-600">
                                     <DollarSign className="h-5 w-5" />
                                 </div>
                                 <div>
@@ -105,7 +105,7 @@ export default async function VehicleDetailsPage({ params }: { params: Promise<{
                             </div>
                             <Separator />
                             <div className="flex items-center gap-4">
-                                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-950/30 flex items-center justify-center text-blue-600">
                                     <Activity className="h-5 w-5" />
                                 </div>
                                 <div>
@@ -119,7 +119,7 @@ export default async function VehicleDetailsPage({ params }: { params: Promise<{
             </div>
 
             {/* Booking History */}
-            <Card className="shadow-sm border-[#E8E5F0]">
+            <Card className="shadow-sm border-[#E8E5F0] dark:border-slate-800">
                 <CardHeader>
                     <CardTitle>Booking History</CardTitle>
                 </CardHeader>

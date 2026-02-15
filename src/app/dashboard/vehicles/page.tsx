@@ -1,12 +1,9 @@
 
-import { getVehicles, getBookings } from "@/lib/data";
+import { getVehicles } from "@/lib/data";
 import VehiclesClient from "./client";
 
 export default async function VehiclesPage() {
-    const [vehicles, bookings] = await Promise.all([
-        getVehicles(),
-        getBookings(),
-    ]);
+    const vehicles = await getVehicles();
 
-    return <VehiclesClient initialVehicles={vehicles} bookings={bookings} />;
+    return <VehiclesClient initialVehicles={vehicles} />;
 }

@@ -39,7 +39,6 @@ interface PaymentsClientProps {
 export default function PaymentsClient({ initialPayments, bookings, customers, vehicles }: PaymentsClientProps) {
     const { setHeaderAction } = useDashboard();
     const [paymentsList, setPaymentsList] = useState<Payment[]>(initialPayments);
-    const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [modeFilter, setModeFilter] = useState("all");
     const [invoiceOpen, setInvoiceOpen] = useState(false);
@@ -65,22 +64,11 @@ export default function PaymentsClient({ initialPayments, bookings, customers, v
 
     const filteredPayments = useMemo(() => {
         let result = [...paymentsList];
-        if (search) {
-            const q = search.toLowerCase();
-            result = result.filter((p) => {
-                const b = bookingMap.get(p.bookingId);
-                const c = b ? customerMap.get(b.customerId) : undefined;
-                return (
-                    (p.transactionId && p.transactionId.toLowerCase().includes(q)) ||
-                    p.bookingId.toLowerCase().includes(q) ||
-                    (c && c.name.toLowerCase().includes(q))
-                );
-            });
-        }
+        // Search logic removed as search is unused
         if (statusFilter !== "all") result = result.filter((p) => p.status === statusFilter);
         if (modeFilter !== "all") result = result.filter((p) => p.mode === modeFilter);
         return result;
-    }, [search, statusFilter, modeFilter, paymentsList, bookingMap, customerMap]);
+    }, [statusFilter, modeFilter, paymentsList]);
 
     // Inject action button into navbar
     useEffect(() => {
@@ -89,7 +77,7 @@ export default function PaymentsClient({ initialPayments, bookings, customers, v
                 <Button
                     className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl h-10 px-5 shadow-sm shadow-[#7C3AED]/20 font-medium text-sm gap-2"
                 >
-                    <Plus className="h-4 w-4" /> Add Payment
+                    <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Add Payment</span>
                 </Button>
             </Link>
         );
@@ -114,10 +102,10 @@ export default function PaymentsClient({ initialPayments, bookings, customers, v
     const filtersContent = (
         <div className="flex items-center gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[130px] h-9 rounded-xl border-[#E8E5F0] bg-white text-sm text-[#64748B] shadow-none focus:ring-[#7C3AED]/20">
+                <SelectTrigger className="w-[130px] h-9 rounded-xl border-[#E8E5F0] dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-[#64748B] dark:text-slate-300 shadow-none focus:ring-[#7C3AED]/20">
                     <SelectValue placeholder="All Status" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-[#E8E5F0] shadow-lg">
+                <SelectContent className="rounded-xl border-[#E8E5F0] dark:border-slate-700 shadow-lg">
                     <SelectItem value="all" className="rounded-lg">All Status</SelectItem>
                     <SelectItem value="Paid" className="rounded-lg">Paid</SelectItem>
                     <SelectItem value="Partial" className="rounded-lg">Partial</SelectItem>
@@ -125,10 +113,10 @@ export default function PaymentsClient({ initialPayments, bookings, customers, v
                 </SelectContent>
             </Select>
             <Select value={modeFilter} onValueChange={setModeFilter}>
-                <SelectTrigger className="w-[130px] h-9 rounded-xl border-[#E8E5F0] bg-white text-sm text-[#64748B] shadow-none focus:ring-[#7C3AED]/20">
+                <SelectTrigger className="w-[130px] h-9 rounded-xl border-[#E8E5F0] dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-[#64748B] dark:text-slate-300 shadow-none focus:ring-[#7C3AED]/20">
                     <SelectValue placeholder="All Modes" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-[#E8E5F0] shadow-lg">
+                <SelectContent className="rounded-xl border-[#E8E5F0] dark:border-slate-700 shadow-lg">
                     <SelectItem value="all" className="rounded-lg">All Modes</SelectItem>
                     <SelectItem value="Cash" className="rounded-lg">Cash</SelectItem>
                     <SelectItem value="UPI" className="rounded-lg">UPI</SelectItem>

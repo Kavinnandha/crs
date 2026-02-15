@@ -6,14 +6,15 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface UtilizationChartProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any[];
 }
 
 export function UtilizationChart({ data }: UtilizationChartProps) {
     return (
-        <Card className="bg-white border-[#E8E5F0] shadow-sm">
+        <Card className="bg-white dark:bg-slate-900 border-[#E8E5F0] dark:border-slate-800 shadow-sm">
             <CardHeader>
-                <CardTitle className="text-base font-semibold text-[#1a1d2e]">Vehicle Utilization</CardTitle>
+                <CardTitle className="text-base font-semibold text-[#1a1d2e] dark:text-white">Vehicle Utilization</CardTitle>
             </CardHeader>
             <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -33,12 +34,12 @@ export function UtilizationChart({ data }: UtilizationChartProps) {
                         />
                         <Tooltip
                             contentStyle={{
-                                backgroundColor: "#FFFFFF",
                                 border: "1px solid #E8E5F0",
                                 borderRadius: "12px",
                                 fontSize: "12px",
                                 boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.06)",
                             }}
+                            wrapperClassName="!bg-white dark:!bg-slate-800"
                             formatter={(value, name) => [
                                 `${value}%`,
                                 name === "utilized" ? "Utilized" : "Idle",

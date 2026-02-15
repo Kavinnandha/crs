@@ -9,7 +9,7 @@ interface PageHeaderProps {
     filters?: React.ReactNode;
 }
 
-export function PageHeader({ title, description, icon: Icon, children, breadcrumb, filters }: PageHeaderProps) {
+export function PageHeader({ title, description, filters }: PageHeaderProps) {
     return (
         <div className="mb-6">
             <div className="flex items-center gap-4">

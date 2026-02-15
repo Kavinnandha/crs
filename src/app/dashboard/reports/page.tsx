@@ -10,7 +10,7 @@ export default async function ReportsPage() {
     ]);
 
     return (
-        <div className="container py-8 max-w-7xl mx-auto">
+        <div className="container pb-8 max-w-7xl mx-auto">
             <ReportsClient vehicles={vehicles} bookings={bookings} payments={payments} />
         </div>
     );

@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
-    IndianRupee, Clock, Users, CalendarCheck, Car, Key, ArrowUpRight, TrendingUp, AlertCircle
+    IndianRupee, Users, CalendarCheck, Car, Key, ArrowUpRight, TrendingUp
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -32,7 +32,6 @@ export default function OverviewClient({ vehicles, bookings, payments, customers
     const availableVehicles = vehicles.filter(v => v.status === "Available").length;
     const activeRentals = bookings.filter(b => b.status === "Active").length;
     const totalRevenue = payments.filter(p => p.status === "Paid").reduce((sum, p) => sum + p.amount, 0);
-    const pendingPayments = payments.filter(p => p.status === "Pending").length;
     const totalCustomers = customers.length;
 
     // Monthly Revenue Data for Chart
@@ -65,6 +64,12 @@ export default function OverviewClient({ vehicles, bookings, payments, customers
     const recentBookings = [...bookings]
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 5);
+
+    const [now, setNow] = useState<number | null>(null);
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setNow(Date.now());
+    }, []);
 
     // Upcoming Returns
     const upcomingReturns = bookings
@@ -125,7 +130,7 @@ export default function OverviewClient({ vehicles, bookings, payments, customers
 
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Revenue Chart */}
-                <Card className="lg:col-span-2 border-[#E8E5F0] shadow-sm">
+                <Card className="lg:col-span-2 border-[#E8E5F0] dark:border-slate-800 shadow-sm">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
                             <TrendingUp className="h-4 w-4 text-violet-600" /> Revenue Trend
@@ -133,8 +138,8 @@ export default function OverviewClient({ vehicles, bookings, payments, customers
                         <CardDescription>Monthly revenue breakdown over the last 6 months</CardDescription>
                     </CardHeader>
                     <CardContent className="pl-0">
-                        <div className="h-[300px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
+                        <div className="w-full min-w-0">
+                            <ResponsiveContainer width="100%" height={300}>
                                 <AreaChart data={monthlyRevenue} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorRevenueOverview" x1="0" y1="0" x2="0" y2="1">
@@ -157,7 +162,7 @@ export default function OverviewClient({ vehicles, bookings, payments, customers
                 </Card>
 
                 {/* Upcoming Returns */}
-                <Card className="border-[#E8E5F0] shadow-sm flex flex-col">
+                <Card className="border-[#E8E5F0] dark:border-slate-800 shadow-sm flex flex-col">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
                             <CalendarCheck className="h-4 w-4 text-blue-600" /> Upcoming Returns
@@ -172,21 +177,22 @@ export default function OverviewClient({ vehicles, bookings, payments, customers
                                 upcomingReturns.map((booking) => {
                                     const vehicle = vehicleMap.get(booking.vehicleId);
                                     const customer = customerMap.get(booking.customerId);
-                                    const daysLeft = Math.ceil((new Date(booking.dropDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                                    // Use 0 or now if null to avoid NaN, though initially loading state might be better
+                                    const daysLeft = now ? Math.ceil((new Date(booking.dropDate).getTime() - now) / (1000 * 60 * 60 * 24)) : 0;
 
                                     return (
-                                        <div key={booking.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                        <div key={booking.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                                             <div className="flex items-center gap-3">
-                                                <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-500">
+                                                <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400">
                                                     <Car className="h-5 w-5" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-slate-900">{vehicle?.brand} {vehicle?.model}</p>
+                                                    <p className="text-sm font-medium text-slate-900 dark:text-white">{vehicle?.brand} {vehicle?.model}</p>
                                                     <p className="text-xs text-muted-foreground">{customer?.name}</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <Badge variant={daysLeft <= 0 ? "destructive" : "secondary"} className={daysLeft <= 0 ? "" : "bg-blue-100 text-blue-700 hover:bg-blue-200"}>
+                                                <Badge variant={daysLeft <= 0 ? "destructive" : "secondary"} className={daysLeft <= 0 ? "" : "bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-950/60"}>
                                                     {daysLeft <= 0 ? "Overdue" : `${daysLeft}d left`}
                                                 </Badge>
                                             </div>
@@ -196,7 +202,7 @@ export default function OverviewClient({ vehicles, bookings, payments, customers
                             )}
                         </div>
                     </CardContent>
-                    <div className="p-4 border-t bg-slate-50/50">
+                    <div className="p-4 border-t dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
                         <Button variant="ghost" className="w-full text-xs h-8 text-muted-foreground hover:text-foreground" asChild>
                             <Link href="/dashboard/bookings">View all bookings</Link>
                         </Button>
@@ -205,7 +211,7 @@ export default function OverviewClient({ vehicles, bookings, payments, customers
             </div>
 
             {/* Recent Bookings Table */}
-            <Card className="border-[#E8E5F0] shadow-sm">
+            <Card className="border-[#E8E5F0] dark:border-slate-800 shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
                         <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
@@ -220,7 +226,7 @@ export default function OverviewClient({ vehicles, bookings, payments, customers
                 <CardContent className="p-0">
                     <Table>
                         <TableHeader>
-                            <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-b border-slate-100">
+                            <TableRow className="bg-slate-50/50 dark:bg-slate-800/30 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800">
                                 <TableHead className="w-[100px] text-xs font-semibold">ID</TableHead>
                                 <TableHead className="text-xs font-semibold">Customer</TableHead>
                                 <TableHead className="text-xs font-semibold">Vehicle</TableHead>
@@ -234,21 +240,21 @@ export default function OverviewClient({ vehicles, bookings, payments, customers
                                 const customer = customerMap.get(booking.customerId);
                                 const vehicle = vehicleMap.get(booking.vehicleId);
                                 return (
-                                    <TableRow key={booking.id} className="hover:bg-slate-50/50 border-b border-slate-50 last:border-0">
+                                    <TableRow key={booking.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 border-b border-slate-50 dark:border-slate-800 last:border-0">
                                         <TableCell className="font-mono text-xs text-muted-foreground">
                                             {booking.id.slice(-6).toUpperCase()}
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
-                                                <div className="h-6 w-6 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-[10px] font-bold">
+                                                <div className="h-6 w-6 rounded-full bg-violet-100 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 flex items-center justify-center text-[10px] font-bold">
                                                     {customer?.name.charAt(0)}
                                                 </div>
-                                                <span className="text-sm font-medium text-slate-700">{customer?.name}</span>
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{customer?.name}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-sm text-slate-600">{vehicle?.brand} {vehicle?.model}</TableCell>
+                                        <TableCell className="text-sm text-slate-600 dark:text-slate-400">{vehicle?.brand} {vehicle?.model}</TableCell>
                                         <TableCell><StatusBadge status={booking.status} variant="booking" /></TableCell>
-                                        <TableCell className="text-right font-medium text-slate-700">{formatCurrency(booking.totalAmount)}</TableCell>
+                                        <TableCell className="text-right font-medium text-slate-700 dark:text-slate-300">{formatCurrency(booking.totalAmount)}</TableCell>
                                         <TableCell className="text-right text-xs text-muted-foreground">
                                             {new Date(booking.createdAt).toLocaleDateString("en-IN", { month: 'short', day: 'numeric' })}
                                         </TableCell>
@@ -263,23 +269,35 @@ export default function OverviewClient({ vehicles, bookings, payments, customers
     );
 }
 
-function KPICard({ title, value, icon: Icon, trend, trendUp, description, color, bg }: any) {
+interface KPICardProps {
+    title: string;
+    value: string | number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    icon: any; // Lucide icon type is generic
+    trend: string;
+    trendUp?: boolean;
+    description?: string;
+    color: string;
+    bg: string;
+}
+
+function KPICard({ title, value, icon: Icon, trend, trendUp, description, color, bg }: KPICardProps) {
     return (
-        <Card className="border-[#E8E5F0] shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border-[#E8E5F0] dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
             <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                    <div className={`p-2 rounded-xl ${bg}`}>
+                    <div className={`p-2 rounded-xl ${bg} dark:bg-opacity-20`}>
                         <Icon className={`h-5 w-5 ${color}`} />
                     </div>
                     {trend && (
-                        <Badge variant="outline" className={`${trendUp ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-red-600 bg-red-50 border-red-200'}`}>
+                        <Badge variant="outline" className={`${trendUp ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' : 'text-red-600 bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800'}`}>
                             {trend}
                         </Badge>
                     )}
                 </div>
                 <div>
                     <p className="text-sm font-medium text-muted-foreground">{title}</p>
-                    <h3 className="text-2xl font-bold text-slate-900 mt-1">{value}</h3>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{value}</h3>
                     {description && <p className="text-xs text-muted-foreground mt-1">{description}</p>}
                 </div>
             </CardContent>

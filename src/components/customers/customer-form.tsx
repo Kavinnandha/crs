@@ -22,7 +22,7 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
     }
 
     return (
-        <form action={handleSubmit} className="space-y-6 max-w-2xl mx-auto bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <form action={handleSubmit} className="space-y-6 max-w-2xl mx-auto bg-card p-8 rounded-2xl border border-border shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <Label htmlFor="name">Full Name *</Label>

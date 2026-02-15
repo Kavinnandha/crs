@@ -53,44 +53,44 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Profile Card */}
-                <Card className="lg:col-span-1 shadow-sm border-[#E8E5F0] overflow-hidden">
-                    <div className="bg-linear-to-br from-indigo-50 to-purple-50 p-6 flex flex-col items-center border-b border-[#E8E5F0]">
-                        <Avatar className="h-24 w-24 mb-4 border-4 border-white shadow-sm">
+                <Card className="lg:col-span-1 shadow-sm border-[#E8E5F0] dark:border-slate-800 overflow-hidden">
+                    <div className="bg-linear-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 p-6 flex flex-col items-center border-b border-[#E8E5F0] dark:border-slate-800">
+                        <Avatar className="h-24 w-24 mb-4 border-4 border-white dark:border-slate-800 shadow-sm">
                             <AvatarFallback className="text-3xl bg-[#7C3AED] text-white font-bold">
                                 {getInitials(customer.name)}
                             </AvatarFallback>
                         </Avatar>
-                        <h2 className="font-semibold text-xl text-[#1a1d2e]">{customer.name}</h2>
+                        <h2 className="font-semibold text-xl text-[#1a1d2e] dark:text-white">{customer.name}</h2>
                         <div className="mt-2">
                             <StatusBadge status={customer.verificationStatus} variant="verification" />
                         </div>
                     </div>
                     <CardContent className="p-6 space-y-4">
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F9FC] border border-[#E8E5F0]">
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F9FC] dark:bg-slate-800 border border-[#E8E5F0] dark:border-slate-700">
                             <Mail className="h-4 w-4 text-[#7C3AED] shrink-0" />
-                            <span className="text-sm truncate font-medium text-[#1a1d2e]">{customer.email}</span>
+                            <span className="text-sm truncate font-medium text-[#1a1d2e] dark:text-slate-200">{customer.email}</span>
                         </div>
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F9FC] border border-[#E8E5F0]">
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F9FC] dark:bg-slate-800 border border-[#E8E5F0] dark:border-slate-700">
                             <Phone className="h-4 w-4 text-[#7C3AED] shrink-0" />
-                            <span className="text-sm font-medium text-[#1a1d2e]">{customer.phone}</span>
+                            <span className="text-sm font-medium text-[#1a1d2e] dark:text-slate-200">{customer.phone}</span>
                         </div>
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F9FC] border border-[#E8E5F0]">
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F9FC] dark:bg-slate-800 border border-[#E8E5F0] dark:border-slate-700">
                             <MapPin className="h-4 w-4 text-[#7C3AED] shrink-0" />
-                            <span className="text-sm font-medium text-[#1a1d2e] truncate">{customer.address || "No address provided"}</span>
+                            <span className="text-sm font-medium text-[#1a1d2e] dark:text-slate-200 truncate">{customer.address || "No address provided"}</span>
                         </div>
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F9FC] border border-[#E8E5F0]">
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F9FC] dark:bg-slate-800 border border-[#E8E5F0] dark:border-slate-700">
                             <CreditCard className="h-4 w-4 text-[#7C3AED] shrink-0" />
-                            <span className="text-sm font-mono font-medium text-[#1a1d2e]">{customer.drivingLicenseNumber}</span>
+                            <span className="text-sm font-mono font-medium text-[#1a1d2e] dark:text-slate-200">{customer.drivingLicenseNumber}</span>
                         </div>
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F9FC] border border-[#E8E5F0]">
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F9FC] dark:bg-slate-800 border border-[#E8E5F0] dark:border-slate-700">
                             <CalendarDays className="h-4 w-4 text-[#7C3AED] shrink-0" />
-                            <span className="text-sm font-medium text-[#1a1d2e]">Joined {new Date(customer.createdAt).toLocaleDateString()}</span>
+                            <span className="text-sm font-medium text-[#1a1d2e] dark:text-slate-200">Joined {new Date(customer.createdAt).toLocaleDateString()}</span>
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Rental History */}
-                <Card className="lg:col-span-2 shadow-sm border-[#E8E5F0] h-fit">
+                <Card className="lg:col-span-2 shadow-sm border-[#E8E5F0] dark:border-slate-800 h-fit">
                     <CardHeader>
                         <CardTitle>Rental History</CardTitle>
                     </CardHeader>
@@ -102,7 +102,7 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
                         ) : (
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="border-[#E8E5F0] bg-[#F8F9FC] hover:bg-[#F8F9FC]">
+                                    <TableRow className="border-[#E8E5F0] dark:border-slate-800 bg-[#F8F9FC] dark:bg-slate-800/50 hover:bg-[#F8F9FC] dark:hover:bg-slate-800/50">
                                         <TableHead className="text-[#64748B]">Vehicle</TableHead>
                                         <TableHead className="text-[#64748B]">Dates</TableHead>
                                         <TableHead className="text-[#64748B]">Status</TableHead>
@@ -113,10 +113,10 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
                                     {customerBookings.map((booking: Booking) => {
                                         const vehicle = vehicleMap.get(booking.vehicleId);
                                         return (
-                                            <TableRow key={booking.id} className="border-[#E8E5F0] hover:bg-[#F8F9FC]">
+                                            <TableRow key={booking.id} className="border-[#E8E5F0] dark:border-slate-800 hover:bg-[#F8F9FC] dark:hover:bg-slate-800/30">
                                                 <TableCell>
                                                     <div>
-                                                        <p className="font-medium text-sm text-[#1a1d2e]">
+                                                        <p className="font-medium text-sm text-[#1a1d2e] dark:text-white">
                                                             {vehicle ? `${vehicle.brand} ${vehicle.model}` : "Unknown Vehicle"}
                                                         </p>
                                                         <p className="text-xs text-[#94a3b8]">
@@ -125,7 +125,7 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="text-sm text-[#1a1d2e]">
+                                                    <div className="text-sm text-[#1a1d2e] dark:text-slate-200">
                                                         {new Date(booking.pickupDate).toLocaleDateString()}
                                                         <span className="text-[#94a3b8] px-1">→</span>
                                                         {new Date(booking.dropDate).toLocaleDateString()}
@@ -134,7 +134,7 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
                                                 <TableCell>
                                                     <StatusBadge status={booking.status} variant="booking" />
                                                 </TableCell>
-                                                <TableCell className="text-right font-medium text-[#1a1d2e]">
+                                                <TableCell className="text-right font-medium text-[#1a1d2e] dark:text-white">
                                                     {formatCurrency(booking.totalAmount)}
                                                 </TableCell>
                                             </TableRow>

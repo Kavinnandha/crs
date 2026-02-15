@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import {
-    Wrench, Plus, AlertTriangle, Calendar, MoreHorizontal, Pencil, Trash2
+    Plus, AlertTriangle, Calendar, MoreHorizontal, Pencil, Trash2
 } from "lucide-react";
 import { useDashboard } from "@/components/layout/dashboard-layout";
 import { PageHeader } from "@/components/layout/page-header";
@@ -25,7 +25,7 @@ import { MaintenanceRecord, Vehicle, ServiceType } from "@/types";
 import { deleteMaintenance } from "@/lib/actions";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils"; // Assuming utils has it, else redefine
-import { toast } from "sonner";
+
 
 const serviceTypes: ServiceType[] = [
     "Oil Change", "Tire Replacement", "Brake Service", "Engine Repair",
@@ -40,7 +40,6 @@ interface MaintenanceClientProps {
 export default function MaintenanceClient({ initialRecords, vehicles }: MaintenanceClientProps) {
     const { setHeaderAction } = useDashboard();
     const [records, setRecords] = useState<MaintenanceRecord[]>(initialRecords);
-    const [search, setSearch] = useState("");
     const [serviceFilter, setServiceFilter] = useState("all");
     const [currentTime] = useState(() => Date.now());
 
@@ -63,9 +62,9 @@ export default function MaintenanceClient({ initialRecords, vehicles }: Maintena
         setHeaderAction(
             <Link href="/dashboard/maintenance/new">
                 <Button
-                    className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl h-10 px-5 shadow-sm shadow-[#7C3AED]/20 font-medium text-sm gap-2"
+                    className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl h-10 px-3 md:px-5 shadow-sm shadow-[#7C3AED]/20 font-medium text-sm gap-2"
                 >
-                    <Plus className="h-4 w-4" /> Add Record
+                    <Plus className="h-4 w-4" /> <span className="hidden md:inline">Add Record</span>
                 </Button>
             </Link>
         );
@@ -74,23 +73,12 @@ export default function MaintenanceClient({ initialRecords, vehicles }: Maintena
 
     const filteredRecords = useMemo(() => {
         let result = [...records];
-        if (search) {
-            const q = search.toLowerCase();
-            result = result.filter((r) => {
-                const v = getVehicleDetails(r.vehicleId);
-                return (
-                    v?.brand.toLowerCase().includes(q) ||
-                    v?.model.toLowerCase().includes(q) ||
-                    r.vendor.toLowerCase().includes(q) ||
-                    r.description.toLowerCase().includes(q)
-                );
-            });
-        }
+        // Search logic removed as search state is removed
         if (serviceFilter !== "all") {
             result = result.filter((r) => r.serviceType === serviceFilter);
         }
         return result.sort((a, b) => new Date(b.serviceDate).getTime() - new Date(a.serviceDate).getTime());
-    }, [records, search, serviceFilter, vehicles]); // Added vehicles to dep array
+    }, [records, serviceFilter]);
 
     const upcomingServices = records
         .filter((r) => r.nextServiceDate && new Date(r.nextServiceDate).getTime() <= (currentTime + 30 * 86400000))
@@ -119,10 +107,10 @@ export default function MaintenanceClient({ initialRecords, vehicles }: Maintena
     const filtersContent = (
         <div className="flex items-center gap-2">
             <Select value={serviceFilter} onValueChange={setServiceFilter}>
-                <SelectTrigger className="w-[160px] h-9 rounded-xl border-[#E8E5F0] bg-white text-sm text-[#64748B] shadow-none focus:ring-[#7C3AED]/20">
+                <SelectTrigger className="w-[160px] h-9 rounded-xl border-border bg-background text-sm text-muted-foreground shadow-none focus:ring-ring/20">
                     <SelectValue placeholder="Service Type" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-[#E8E5F0] shadow-lg">
+                <SelectContent className="rounded-xl border-border shadow-lg">
                     <SelectItem value="all" className="rounded-lg">All Types</SelectItem>
                     {serviceTypes.map((t) => (
                         <SelectItem key={t} value={t} className="rounded-lg">{t}</SelectItem>
@@ -228,17 +216,17 @@ export default function MaintenanceClient({ initialRecords, vehicles }: Maintena
                                             <TableCell>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-[#94a3b8] hover:text-[#64748B] hover:bg-[#F8F9FC] rounded-lg">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-[#94a3b8] hover:text-[#64748B] hover:bg-[#F8F9FC] dark:hover:bg-slate-800 rounded-lg">
                                                             <MoreHorizontal className="h-4 w-4" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end" className="rounded-xl border-[#E8E5F0] shadow-lg">
+                                                    <DropdownMenuContent align="end" className="rounded-xl border-border shadow-lg">
                                                         <Link href={`/dashboard/maintenance/${record.id}/edit`}>
                                                             <DropdownMenuItem className="rounded-lg cursor-pointer">
                                                                 <Pencil className="mr-2 h-4 w-4" /> Edit
                                                             </DropdownMenuItem>
                                                         </Link>
-                                                        <DropdownMenuSeparator className="bg-[#E8E5F0]" />
+                                                        <DropdownMenuSeparator className="bg-border" />
                                                         <DropdownMenuItem
                                                             className="text-red-500 hover:text-red-600 rounded-lg cursor-pointer"
                                                             onClick={() => {
@@ -261,16 +249,16 @@ export default function MaintenanceClient({ initialRecords, vehicles }: Maintena
             </Card>
 
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-                <DialogContent className="max-w-sm rounded-2xl border-[#E8E5F0] shadow-xl">
+                <DialogContent className="max-w-sm rounded-2xl border-border shadow-xl">
                     <DialogHeader>
-                        <DialogTitle className="text-[#1a1d2e] text-lg font-semibold">Delete Record</DialogTitle>
+                        <DialogTitle className="text-[#1a1d2e] dark:text-white text-lg font-semibold">Delete Record</DialogTitle>
                         <DialogDescription className="text-[#94a3b8]">
                             Are you sure you want to delete this maintenance record?
                             This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteOpen(false)} className="rounded-xl border-[#E8E5F0] text-[#64748B] hover:bg-[#F8F9FC] shadow-none">Cancel</Button>
+                        <Button variant="outline" onClick={() => setDeleteOpen(false)} className="rounded-xl border-border text-muted-foreground hover:bg-muted shadow-none">Cancel</Button>
                         <Button variant="destructive" onClick={handleDelete} className="rounded-xl shadow-sm">Delete</Button>
                     </DialogFooter>
                 </DialogContent>

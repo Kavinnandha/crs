@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 import { createPayment } from "@/lib/actions";
 import { Booking, Customer, PaymentMode, PaymentStatus } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,6 @@ interface NewPaymentClientProps {
 }
 
 export default function NewPaymentClient({ bookings, customers }: NewPaymentClientProps) {
-    const router = useRouter();
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
@@ -58,8 +57,8 @@ export default function NewPaymentClient({ bookings, customers }: NewPaymentClie
 
         try {
             await createPayment(form);
-        } catch (e: any) {
-            setError(e.message || "Something went wrong");
+        } catch (e) {
+            setError((e as Error).message || "Something went wrong");
             setSubmitting(false);
         }
     }
@@ -75,14 +74,14 @@ export default function NewPaymentClient({ bookings, customers }: NewPaymentClie
                 <h1 className="text-2xl font-bold tracking-tight">New Payment</h1>
             </div>
 
-            <Card className="border-[#E8E5F0] shadow-sm">
+            <Card className="border-border shadow-sm">
                 <CardHeader>
                     <CardTitle>Payment Details</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {error && (
-                            <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-lg">
                                 {error}
                             </div>
                         )}

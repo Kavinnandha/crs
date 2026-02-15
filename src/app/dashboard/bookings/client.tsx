@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import {
-    CalendarDays, Plus, CalendarPlus, MoreHorizontal,
+    Plus, MoreHorizontal,
     Eye, XCircle, LayoutGrid, List, User, Pencil, Trash2
 } from "lucide-react";
 import { useDashboard } from "@/components/layout/dashboard-layout";
@@ -37,7 +37,6 @@ interface BookingsClientProps {
 export default function BookingsClient({ initialBookings, customers, vehicles }: BookingsClientProps) {
     const { setHeaderAction } = useDashboard();
     const [bookings, setBookings] = useState<Booking[]>(initialBookings);
-    const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [viewMode, setViewMode] = useState<"table" | "card">("table");
 
@@ -61,35 +60,23 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
 
     const filteredBookings = useMemo(() => {
         let result = [...bookings];
-        if (search) {
-            const q = search.toLowerCase();
-            result = result.filter((b) => {
-                const c = getCustomerById(b.customerId);
-                const v = getVehicleById(b.vehicleId);
-                return (
-                    b.id.toLowerCase().includes(q) ||
-                    c?.name.toLowerCase().includes(q) ||
-                    v?.brand.toLowerCase().includes(q) ||
-                    v?.model.toLowerCase().includes(q)
-                );
-            });
-        }
+        /* Search logic removed as search state is removed */
         if (statusFilter !== "all") {
             result = result.filter((b) => b.status === statusFilter);
         }
         return result.sort(
             (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-    }, [bookings, search, statusFilter, customerMap, vehicleMap]);
+    }, [bookings, statusFilter]);
 
     // Inject action button into navbar
     useEffect(() => {
         setHeaderAction(
             <Link href="/dashboard/bookings/new">
                 <Button
-                    className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl h-10 px-5 shadow-sm shadow-[#7C3AED]/20 font-medium text-sm gap-2"
+                    className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl h-10 px-3 md:px-5 shadow-sm shadow-[#7C3AED]/20 font-medium text-sm gap-2"
                 >
-                    <Plus className="h-4 w-4" /> New Booking
+                    <Plus className="h-4 w-4" /> <span className="hidden md:inline">New Booking</span>
                 </Button>
             </Link>
         );
@@ -150,10 +137,10 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
     const filtersContent = (
         <div className="flex items-center gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px] h-9 rounded-xl border-[#E8E5F0] bg-white text-sm text-[#64748B] shadow-none focus:ring-[#7C3AED]/20">
+                <SelectTrigger className="w-[140px] h-9 rounded-xl border-[#E8E5F0] dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-[#64748B] dark:text-slate-300 shadow-none focus:ring-[#7C3AED]/20">
                     <SelectValue placeholder="All Status" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-[#E8E5F0] shadow-lg">
+                <SelectContent className="rounded-xl border-[#E8E5F0] dark:border-slate-700 shadow-lg">
                     <SelectItem value="all" className="rounded-lg">All Status</SelectItem>
                     <SelectItem value="Reserved" className="rounded-lg">Reserved</SelectItem>
                     <SelectItem value="Active" className="rounded-lg">Active</SelectItem>
@@ -162,13 +149,13 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
                 </SelectContent>
             </Select>
 
-            <div className="flex items-center gap-0.5 ml-1 bg-[#F8F9FC] rounded-xl p-0.5 border border-[#E8E5F0]">
+            <div className="flex items-center gap-0.5 ml-1 bg-[#F8F9FC] dark:bg-slate-800 rounded-xl p-0.5 border border-[#E8E5F0] dark:border-slate-700">
                 <Button variant="ghost" size="icon" onClick={() => setViewMode("table")}
-                    className={`h-8 w-8 rounded-lg ${viewMode === "table" ? "bg-white shadow-sm text-[#7C3AED]" : "text-[#94a3b8] hover:text-[#64748B]"}`}>
+                    className={`h-8 w-8 rounded-lg ${viewMode === "table" ? "bg-white dark:bg-slate-700 shadow-sm text-[#7C3AED]" : "text-[#94a3b8] hover:text-[#64748B]"}`}>
                     <List className="h-4 w-4" />
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => setViewMode("card")}
-                    className={`h-8 w-8 rounded-lg ${viewMode === "card" ? "bg-white shadow-sm text-[#7C3AED]" : "text-[#94a3b8] hover:text-[#64748B]"}`}>
+                    className={`h-8 w-8 rounded-lg ${viewMode === "card" ? "bg-white dark:bg-slate-700 shadow-sm text-[#7C3AED]" : "text-[#94a3b8] hover:text-[#64748B]"}`}>
                     <LayoutGrid className="h-4 w-4" />
                 </Button>
             </div>
@@ -391,9 +378,9 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
 
             {/* Delete Dialog */}
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-                <DialogContent className="max-w-sm rounded-2xl border-[#E8E5F0] shadow-xl">
+                <DialogContent className="max-w-sm rounded-2xl border-[#E8E5F0] dark:border-slate-800 shadow-xl">
                     <DialogHeader>
-                        <DialogTitle className="text-[#1a1d2e] text-lg font-semibold">Delete Booking</DialogTitle>
+                        <DialogTitle className="text-[#1a1d2e] dark:text-white text-lg font-semibold">Delete Booking</DialogTitle>
                         <DialogDescription className="text-[#94a3b8]">
                             Are you sure you want to delete this booking? This action cannot be undone.
                         </DialogDescription>

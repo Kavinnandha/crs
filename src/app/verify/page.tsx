@@ -92,7 +92,7 @@ export default function VerifyPage() {
             >
                 Run Verification
             </button>
-            <div className="bg-gray-100 p-4 rounded h-96 overflow-auto border border-gray-300 font-mono text-sm">
+            <div className="bg-gray-100 dark:bg-slate-800 p-4 rounded h-96 overflow-auto border border-gray-300 dark:border-slate-700 font-mono text-sm dark:text-slate-200">
                 {logs.map((log, i) => (
                     <div key={i} className="mb-1">
                         {log}

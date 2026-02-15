@@ -109,7 +109,7 @@ export async function getVehicleById(id: string) {
             try {
                 // strict check for ObjectId validity usually needed, but findById handles some
                 vehicle = await Vehicle.findById(id).lean();
-            } catch (e) {
+            } catch {
                 // ignore
             }
         }
@@ -136,6 +136,7 @@ export async function getMonthlyRevenue() {
         const revenueMap: Record<string, { revenue: number; bookings: number }> = {};
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         payments.forEach((p: any) => {
             if (!p.paidAt) return;
             const date = new Date(p.paidAt);
@@ -170,6 +171,7 @@ export async function getVehicleUtilization() {
         const totalByCategory: Record<string, number> = {};
         const utilizedByCategory: Record<string, number> = {};
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         vehicles.forEach((v: any) => {
             const cat = v.category;
             totalByCategory[cat] = (totalByCategory[cat] || 0) + 1;
@@ -212,7 +214,7 @@ export async function getMaintenanceById(id: string) {
     try {
         let record = await Maintenance.findOne({ id }).lean();
         if (!record) {
-            try { record = await Maintenance.findById(id).lean(); } catch (e) { }
+            try { record = await Maintenance.findById(id).lean(); } catch { }
         }
         if (!record) return null;
         return JSON.parse(JSON.stringify(record));
@@ -227,7 +229,7 @@ export async function getBookingById(id: string) {
     try {
         let booking = await Booking.findOne({ id }).lean();
         if (!booking) {
-            try { booking = await Booking.findById(id).lean(); } catch (e) { }
+            try { booking = await Booking.findById(id).lean(); } catch { }
         }
         if (!booking) return null;
         return JSON.parse(JSON.stringify(booking));
@@ -242,7 +244,7 @@ export async function getPaymentById(id: string) {
     try {
         let payment = await Payment.findOne({ id }).lean();
         if (!payment) {
-            try { payment = await Payment.findById(id).lean(); } catch (e) { }
+            try { payment = await Payment.findById(id).lean(); } catch { }
         }
         if (!payment) return null;
         return JSON.parse(JSON.stringify(payment));

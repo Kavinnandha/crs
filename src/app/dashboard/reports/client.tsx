@@ -2,13 +2,13 @@
 
 import { useMemo } from "react";
 import {
-    BarChart3, TrendingUp, AlertCircle, CalendarDays,
+    BarChart3, TrendingUp, CalendarDays,
     IndianRupee, CreditCard, PieChart as PieChartIcon, ArrowRight
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, Legend, AreaChart, Area
 } from "recharts";
 import {
@@ -111,43 +111,43 @@ export default function ReportsClient({ vehicles, bookings, payments }: ReportsC
 
             {/* KPI Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="border-[#E8E5F0] shadow-sm bg-gradient-to-br from-white to-violet-50/50">
+                <Card className="border-[#E8E5F0] dark:border-slate-800 shadow-sm bg-linear-to-br from-white to-violet-50/50 dark:from-slate-900 dark:to-violet-950/20">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
                         <IndianRupee className="h-4 w-4 text-violet-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-violet-950">{formatCurrency(totalRevenue)}</div>
+                        <div className="text-2xl font-bold text-violet-950 dark:text-violet-200">{formatCurrency(totalRevenue)}</div>
                         <p className="text-xs text-muted-foreground mt-1">+20.1% from last month</p>
                     </CardContent>
                 </Card>
-                <Card className="border-[#E8E5F0] shadow-sm">
+                <Card className="border-[#E8E5F0] dark:border-slate-800 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">Pending Payments</CardTitle>
                         <CreditCard className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-slate-900">{formatCurrency(pendingRevenue)}</div>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{formatCurrency(pendingRevenue)}</div>
                         <p className="text-xs text-muted-foreground mt-1">12 invoices pending</p>
                     </CardContent>
                 </Card>
-                <Card className="border-[#E8E5F0] shadow-sm">
+                <Card className="border-[#E8E5F0] dark:border-slate-800 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">Utilization Rate</CardTitle>
                         <TrendingUp className="h-4 w-4 text-emerald-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-slate-900">{utilizationRate}%</div>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{utilizationRate}%</div>
                         <p className="text-xs text-muted-foreground mt-1">Currently active rentals</p>
                     </CardContent>
                 </Card>
-                <Card className="border-[#E8E5F0] shadow-sm">
+                <Card className="border-[#E8E5F0] dark:border-slate-800 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">Total Bookings</CardTitle>
                         <CalendarDays className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-slate-900">{bookings.length}</div>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{bookings.length}</div>
                         <p className="text-xs text-muted-foreground mt-1">All time bookings</p>
                     </CardContent>
                 </Card>
@@ -156,7 +156,7 @@ export default function ReportsClient({ vehicles, bookings, payments }: ReportsC
             {/* Charts Section */}
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* Revenue Chart */}
-                <Card className="border-[#E8E5F0] shadow-sm">
+                <Card className="border-[#E8E5F0] dark:border-slate-800 shadow-sm">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base">
                             <BarChart3 className="h-4 w-4" /> Revenue Trend
@@ -164,29 +164,32 @@ export default function ReportsClient({ vehicles, bookings, payments }: ReportsC
                         <CardDescription>Monthly revenue breakdown</CardDescription>
                     </CardHeader>
                     <CardContent className="pl-0">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <AreaChart data={monthlyRevenue} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                                <defs>
-                                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.1} />
-                                        <stop offset="95%" stopColor="#7C3AED" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value / 1000}k`} />
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
-                                    formatter={(value: number | undefined) => [formatCurrency(value || 0), "Revenue"]}
-                                />
-                                <Area type="monotone" dataKey="revenue" stroke="#7C3AED" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                        <div className="w-full min-w-0">
+                            <ResponsiveContainer width="100%" height={300}>
+                                <AreaChart data={monthlyRevenue} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.1} />
+                                            <stop offset="95%" stopColor="#7C3AED" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value / 1000}k`} />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" className="dark:[&>line]:stroke-slate-700" />
+                                    <Tooltip
+                                        contentStyle={{ borderRadius: "8px", border: "1px solid var(--color-border, #E2E8F0)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
+                                        wrapperClassName="!bg-white dark:!bg-slate-800 [&_.recharts-tooltip-label]:!text-foreground"
+                                        formatter={(value: number | undefined) => [formatCurrency(value || 0), "Revenue"]}
+                                    />
+                                    <Area type="monotone" dataKey="revenue" stroke="#7C3AED" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
                     </CardContent>
                 </Card>
 
                 {/* Category Pie Chart */}
-                <Card className="border-[#E8E5F0] shadow-sm">
+                <Card className="border-[#E8E5F0] dark:border-slate-800 shadow-sm">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base">
                             <PieChartIcon className="h-4 w-4" /> Bookings by Category
@@ -194,8 +197,8 @@ export default function ReportsClient({ vehicles, bookings, payments }: ReportsC
                         <CardDescription>Popular vehicle segments</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-[300px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
+                        <div className="w-full min-w-0">
+                            <ResponsiveContainer width="100%" height={300}>
                                 <PieChart>
                                     <Pie
                                         data={categoryData}
@@ -211,7 +214,8 @@ export default function ReportsClient({ vehicles, bookings, payments }: ReportsC
                                         ))}
                                     </Pie>
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: "#fff", borderRadius: "8px", border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
+                                        contentStyle={{ borderRadius: "8px", border: "1px solid var(--color-border, #E2E8F0)", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
+                                        wrapperClassName="!bg-white dark:!bg-slate-800"
                                     />
                                     <Legend verticalAlign="bottom" height={36} />
                                 </PieChart>
@@ -224,8 +228,8 @@ export default function ReportsClient({ vehicles, bookings, payments }: ReportsC
             {/* Tables Section */}
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* Top Performing Vehicles */}
-                <Card className="border-[#E8E5F0] shadow-sm overflow-hidden">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2 bg-slate-50/50">
+                <Card className="border-[#E8E5F0] dark:border-slate-800 shadow-sm overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 bg-slate-50/50 dark:bg-slate-800/50">
                         <div className="space-y-1">
                             <CardTitle className="text-base font-semibold">Top Performers</CardTitle>
                             <CardDescription>Highest revenue generating vehicles</CardDescription>
@@ -237,7 +241,7 @@ export default function ReportsClient({ vehicles, bookings, payments }: ReportsC
                     <CardContent className="p-0">
                         <Table>
                             <TableHeader>
-                                <TableRow className="border-b border-slate-100 bg-white">
+                                <TableRow className="border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-transparent">
                                     <TableHead className="w-[50px] font-medium text-xs text-muted-foreground">#</TableHead>
                                     <TableHead className="font-medium text-xs text-muted-foreground">Vehicle</TableHead>
                                     <TableHead className="text-right font-medium text-xs text-muted-foreground">Trips</TableHead>
@@ -246,18 +250,18 @@ export default function ReportsClient({ vehicles, bookings, payments }: ReportsC
                             </TableHeader>
                             <TableBody>
                                 {topVehicles.map((v, i) => (
-                                    <TableRow key={v.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
+                                    <TableRow key={v.id} className="border-b border-slate-50 dark:border-slate-800 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
                                         <TableCell className="font-mono text-xs text-muted-foreground pl-4">{i + 1}</TableCell>
                                         <TableCell>
                                             <div className="flex flex-col">
-                                                <span className="font-medium text-sm text-slate-700">{v.brand} {v.model}</span>
+                                                <span className="font-medium text-sm text-slate-700 dark:text-slate-200">{v.brand} {v.model}</span>
                                                 <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{v.registrationNumber}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <Badge variant="secondary" className="bg-violet-50 text-violet-700 hover:bg-violet-100">{v.bookingCount}</Badge>
+                                            <Badge variant="secondary" className="bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-950/50">{v.bookingCount}</Badge>
                                         </TableCell>
-                                        <TableCell className="text-right font-medium text-slate-700 pr-4">{formatCurrency(v.revenue)}</TableCell>
+                                        <TableCell className="text-right font-medium text-slate-700 dark:text-slate-200 pr-4">{formatCurrency(v.revenue)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -266,11 +270,11 @@ export default function ReportsClient({ vehicles, bookings, payments }: ReportsC
                 </Card>
 
                 {/* Idle Vehicles */}
-                <Card className="border-[#E8E5F0] shadow-sm overflow-hidden">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2 bg-slate-50/50">
+                <Card className="border-[#E8E5F0] dark:border-slate-800 shadow-sm overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 bg-slate-50/50 dark:bg-slate-800/50">
                         <div className="space-y-1">
                             <CardTitle className="text-base font-semibold flex items-center gap-2">
-                                Available Now <Badge variant="outline" className="text-emerald-600 bg-emerald-50 border-emerald-200">{idleVehicles.length}</Badge>
+                                Available Now <Badge variant="outline" className="text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800">{idleVehicles.length}</Badge>
                             </CardTitle>
                             <CardDescription>Vehicles ready for booking</CardDescription>
                         </div>
@@ -280,18 +284,18 @@ export default function ReportsClient({ vehicles, bookings, payments }: ReportsC
                             <div className="text-center py-8 text-muted-foreground text-sm">No vehicles currently available.</div>
                         ) : (
                             idleVehicles.map((v) => (
-                                <div key={v.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-white hover:border-violet-200 transition-colors group">
+                                <div key={v.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-violet-200 dark:hover:border-violet-800 transition-colors group">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-violet-50 group-hover:text-violet-600 transition-colors">
+                                        <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover:bg-violet-50 dark:group-hover:bg-violet-950/30 group-hover:text-violet-600 transition-colors">
                                             <Car className="h-5 w-5" />
                                         </div>
                                         <div>
-                                            <p className="font-medium text-sm text-slate-700">{v.brand} {v.model}</p>
+                                            <p className="font-medium text-sm text-slate-700 dark:text-slate-200">{v.brand} {v.model}</p>
                                             <p className="text-xs text-muted-foreground">{v.category} • {v.fuelType}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-medium text-sm text-slate-900">{formatCurrency(v.pricePerDay)}<span className="text-xs text-muted-foreground font-normal">/day</span></p>
+                                        <p className="font-medium text-sm text-slate-900 dark:text-white">{formatCurrency(v.pricePerDay)}<span className="text-xs text-muted-foreground font-normal">/day</span></p>
                                         <Link href="/dashboard/bookings/new" className="text-xs text-violet-600 font-medium hover:underline">Book Now</Link>
                                     </div>
                                 </div>
@@ -304,7 +308,7 @@ export default function ReportsClient({ vehicles, bookings, payments }: ReportsC
     );
 }
 
-function Car(props: any) {
+function Car(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             {...props}

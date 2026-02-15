@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 import { updateMaintenance } from "@/lib/actions";
 import { Vehicle, MaintenanceRecord, ServiceType } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, ArrowLeft, Trash2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { toast } from "sonner"; // If sonner or other toast is available
 
 const serviceTypes: ServiceType[] = [
     "Oil Change", "Tire Replacement", "Brake Service", "Engine Repair",
@@ -25,7 +24,6 @@ interface EditMaintenanceClientProps {
 }
 
 export default function EditMaintenanceClient({ record, vehicles }: EditMaintenanceClientProps) {
-    const router = useRouter();
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -35,8 +33,8 @@ export default function EditMaintenanceClient({ record, vehicles }: EditMaintena
         try {
             await updateMaintenance(record.id, formData);
             // Redirect handled in server action
-        } catch (e: any) {
-            setError(e.message || "Something went wrong");
+        } catch (e) {
+            setError((e as Error).message || "Something went wrong");
             setSubmitting(false);
         }
     }
@@ -52,14 +50,14 @@ export default function EditMaintenanceClient({ record, vehicles }: EditMaintena
                 <h1 className="text-2xl font-bold tracking-tight">Edit Maintenance Record</h1>
             </div>
 
-            <Card className="border-[#E8E5F0] shadow-sm">
+            <Card className="border-border shadow-sm">
                 <CardHeader>
                     <CardTitle>Record Details</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form action={handleSubmit} className="space-y-6">
                         {error && (
-                            <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-lg">
                                 {error}
                             </div>
                         )}

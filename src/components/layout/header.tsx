@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, PanelLeftClose, PanelLeftOpen, Menu } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDashboard } from "./dashboard-layout";
@@ -51,8 +52,8 @@ export function Header({ sidebarCollapsed, onToggleSidebar, action, mobileOpen, 
 
                 {/* Mobile Logo & Name (Centered) */}
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 md:hidden">
-                    <div className="h-8 w-8 rounded-full overflow-hidden shrink-0">
-                        <img src="/carzio.jpg" alt="Carzio" className="h-full w-full object-cover" />
+                    <div className="h-8 w-8 rounded-full overflow-hidden shrink-0 relative">
+                        <Image src="/carzio.jpg" alt="Carzio" fill className="object-cover" />
                     </div>
                     <span className="text-lg font-semibold text-[#1a1d2e] dark:text-white tracking-tight">
                         Carzio
@@ -95,20 +96,24 @@ export function Header({ sidebarCollapsed, onToggleSidebar, action, mobileOpen, 
                 {action}
             </div>
 
-            {/* Mobile Search Row - Hide if isFormPage is true */}
-            {!isFormPage && (
-                <div className="w-full md:hidden pt-2">
-                    <div className="relative w-full">
-                        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
-                        <Input
-                            placeholder="Search..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 h-10 bg-white dark:bg-slate-900 border-[#E8E5F0] dark:border-slate-800 rounded-xl text-sm text-[#1a1d2e] dark:text-white placeholder:text-[#94a3b8] focus-visible:ring-[#7C3AED]/20 focus-visible:border-[#7C3AED]/40 shadow-none w-full"
-                        />
+            {/* Mobile Search Row - Hide if isFormPage is true or specific dashboard pages */}
+            {!isFormPage &&
+                pathname !== "/dashboard" &&
+                pathname !== "/dashboard/overview" &&
+                pathname !== "/dashboard/reports" &&
+                !(pathname.startsWith("/dashboard/customers/") && pathname.split("/").length > 3 && !pathname.endsWith("/edit")) && (
+                    <div className="w-full md:hidden pt-2">
+                        <div className="relative w-full">
+                            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
+                            <Input
+                                placeholder="Search..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-10 h-10 bg-white dark:bg-slate-900 border-[#E8E5F0] dark:border-slate-800 rounded-xl text-sm text-[#1a1d2e] dark:text-white placeholder:text-[#94a3b8] focus-visible:ring-[#7C3AED]/20 focus-visible:border-[#7C3AED]/40 shadow-none w-full"
+                            />
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
         </header>
     );
 }
