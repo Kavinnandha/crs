@@ -83,7 +83,7 @@ export function AdminForm({ initialData, onSubmit, onCancel, submitLabel }: Admi
                         type="email"
                         required={!initialData}
                         defaultValue={initialData?.email}
-                        placeholder="admin@carzio.com"
+                        placeholder="Email"
                         disabled={!!initialData} // Email usually shouldn't change for identity reasons, or handle carefully
                     />
                 </div>
