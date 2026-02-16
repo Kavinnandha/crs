@@ -3,7 +3,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 
 const MAX_FILE_SIZE = 1024 * 1024; // 1MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
+const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
 
 export async function POST(request: NextRequest) {
     try {
@@ -37,14 +37,14 @@ export async function POST(request: NextRequest) {
         let extension = '.jpg';
         if (file.type === 'image/png') {
             extension = '.png';
-        } else if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+        } else if (file.type === 'image/jpeg') {
             extension = '.jpg';
         }
 
-        // Create unique filename
+        // Create safe filename using only timestamp
         const timestamp = Date.now();
-        const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
-        const filename = `${timestamp}_${baseName.substring(0, 50)}${extension}`;
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const filename = `${timestamp}_${randomSuffix}${extension}`;
 
         // Get file buffer
         const bytes = await file.arrayBuffer();

@@ -24,7 +24,7 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
     const aadhaarInputRef = useRef<HTMLInputElement>(null);
 
     const validateFile = (file: File): string | null => {
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        const allowedTypes = ['image/jpeg', 'image/png'];
         const maxSize = 1024 * 1024; // 1MB
 
         if (!allowedTypes.includes(file.type)) {
