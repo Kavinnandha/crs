@@ -105,15 +105,19 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
                 fieldName: string
             ): Promise<boolean> => {
                 if (file) {
+                    // New file selected - upload it
                     const path = await uploadFile(file);
                     if (path) {
                         formData.append(fieldName, path);
                         return true;
                     }
+                    // Upload failed
                     return false;
                 } else if (existingPath) {
+                    // No new file, but existing path exists - keep it
                     formData.append(fieldName, existingPath);
                 }
+                // No file and no existing path - field is optional, continue
                 return true;
             };
 

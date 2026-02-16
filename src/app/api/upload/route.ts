@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
         // Create safe filename using timestamp and cryptographically secure random suffix
         const timestamp = Date.now();
-        const randomSuffix = randomBytes(3).toString('hex'); // 6 hex characters
+        const randomSuffix = randomBytes(3).toString('hex'); // 3 bytes = 6 hex characters
         const filename = `${timestamp}_${randomSuffix}${extension}`;
 
         // Get file buffer
