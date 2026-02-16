@@ -35,8 +35,9 @@ export async function POST(request: NextRequest) {
 
         // Create unique filename
         const timestamp = Date.now();
-        const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const filename = `${timestamp}_${originalName}`;
+        const originalName = file.name.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const extension = path.extname(file.name).toLowerCase();
+        const filename = `${timestamp}_${originalName.substring(0, 50)}${extension}`;
 
         // Get file buffer
         const bytes = await file.arrayBuffer();

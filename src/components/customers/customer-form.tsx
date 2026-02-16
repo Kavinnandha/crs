@@ -53,14 +53,22 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
             setDrivingLicenseFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
-                setDrivingLicensePreview(reader.result as string);
+                const result = reader.result as string;
+                // Validate that result is a proper data URL
+                if (result && result.startsWith('data:image/')) {
+                    setDrivingLicensePreview(result);
+                }
             };
             reader.readAsDataURL(file);
         } else {
             setAadhaarCardFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
-                setAadhaarCardPreview(reader.result as string);
+                const result = reader.result as string;
+                // Validate that result is a proper data URL
+                if (result && result.startsWith('data:image/')) {
+                    setAadhaarCardPreview(result);
+                }
             };
             reader.readAsDataURL(file);
         }
