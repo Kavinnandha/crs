@@ -26,6 +26,9 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
             : null
     );
 
+    const [removingAadhar, setRemovingAadhar] = useState(false);
+    const [removingLicense, setRemovingLicense] = useState(false);
+
     async function handleSubmit(formData: FormData) {
         // Append image data to form
         if (aadharImage) {
@@ -53,22 +56,36 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
 
     const handleRemoveAadhar = async () => {
         if (aadharImage?.publicId) {
-            await fetch("/api/upload", {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ publicId: aadharImage.publicId }),
-            });
+            setRemovingAadhar(true);
+            try {
+                await fetch("/api/upload", {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ publicId: aadharImage.publicId }),
+                });
+            } catch (error) {
+                console.error("Error removing image:", error);
+            } finally {
+                setRemovingAadhar(false);
+            }
         }
         setAadharImage(null);
     };
 
     const handleRemoveLicense = async () => {
         if (drivingLicenseImage?.publicId) {
-            await fetch("/api/upload", {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ publicId: drivingLicenseImage.publicId }),
-            });
+            setRemovingLicense(true);
+            try {
+                await fetch("/api/upload", {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ publicId: drivingLicenseImage.publicId }),
+                });
+            } catch (error) {
+                console.error("Error removing image:", error);
+            } finally {
+                setRemovingLicense(false);
+            }
         }
         setDrivingLicenseImage(null);
     };
@@ -123,6 +140,7 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
                         currentPublicId={aadharImage?.publicId}
                         onUploadComplete={(url, publicId) => setAadharImage({ url, publicId })}
                         onRemove={handleRemoveAadhar}
+                        isRemoving={removingAadhar}
                     />
                     <ImageUpload
                         label="Driving License"
@@ -130,6 +148,7 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
                         currentPublicId={drivingLicenseImage?.publicId}
                         onUploadComplete={(url, publicId) => setDrivingLicenseImage({ url, publicId })}
                         onRemove={handleRemoveLicense}
+                        isRemoving={removingLicense}
                     />
                 </div>
             </div>

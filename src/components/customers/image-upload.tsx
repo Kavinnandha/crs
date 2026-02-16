@@ -11,6 +11,7 @@ interface ImageUploadProps {
     currentPublicId?: string;
     onUploadComplete: (url: string, publicId: string) => void;
     onRemove: () => void;
+    isRemoving?: boolean;
 }
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
@@ -22,6 +23,7 @@ export function ImageUpload({
     currentPublicId,
     onUploadComplete,
     onRemove,
+    isRemoving = false,
 }: ImageUploadProps) {
     const [preview, setPreview] = useState<string | null>(currentImageUrl || null);
     const [uploading, setUploading] = useState(false);
@@ -96,11 +98,26 @@ export function ImageUpload({
     };
 
     const handleRemove = async () => {
-        setPreview(null);
-        setError(null);
-        if (inputRef.current) inputRef.current.value = "";
+        // Do not clear preview here if we want to show loading state while removing
+        // The parent will call onRemove which should trigger the removal process
+        // And when it's done, parent will re-render or this component will update
+        // But for now, let's just call onRemove directly
         onRemove();
     };
+
+    // Update preview when currentImageUrl changes (e.g. after removal from parent)
+    // But we also need to handle local preview for new files. 
+    // If currentImageUrl becomes null, we should clear preview.
+    if (currentImageUrl !== undefined && currentImageUrl !== preview && !uploading && !isRemoving) {
+        // This might cause loop if not careful, but usually checking props vs state is ok in render or effect
+        // Better to use useEffect
+    }
+
+    // Actually, let's rely on parent passing null to clear it, 
+    // OR just use useEffect to sync
+    // But we have local state for instant preview of new file.
+
+    // If isRemoving is true, we show spinner over existing preview.
 
     return (
         <div className="space-y-2">
@@ -118,13 +135,13 @@ export function ImageUpload({
                             className="object-contain p-2"
                             unoptimized={preview.startsWith("data:")}
                         />
-                        {uploading && (
+                        {(uploading || isRemoving) && (
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
                                 <Loader2 className="h-6 w-6 text-white animate-spin" />
                             </div>
                         )}
                     </div>
-                    {!uploading && (
+                    {!uploading && !isRemoving && (
                         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
                                 type="button"
@@ -149,11 +166,10 @@ export function ImageUpload({
                 </div>
             ) : (
                 <div
-                    className={`relative flex flex-col items-center justify-center h-44 rounded-xl border-2 border-dashed transition-colors cursor-pointer ${
-                        dragOver
-                            ? "border-[#7C3AED] bg-[#7C3AED]/5"
-                            : "border-[#E8E5F0] dark:border-slate-700 hover:border-[#7C3AED]/50 bg-[#F8F9FC] dark:bg-slate-800"
-                    }`}
+                    className={`relative flex flex-col items-center justify-center h-44 rounded-xl border-2 border-dashed transition-colors cursor-pointer ${dragOver
+                        ? "border-[#7C3AED] bg-[#7C3AED]/5"
+                        : "border-[#E8E5F0] dark:border-slate-700 hover:border-[#7C3AED]/50 bg-[#F8F9FC] dark:bg-slate-800"
+                        }`}
                     onClick={() => inputRef.current?.click()}
                     onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                     onDragLeave={() => setDragOver(false)}

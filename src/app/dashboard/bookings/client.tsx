@@ -49,6 +49,8 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
     const [bookingToDelete, setBookingToDelete] = useState<Booking | null>(null);
     const [alertOpen, setAlertOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState("");
+    const [deleting, setDeleting] = useState(false);
+    const [cancellingId, setCancellingId] = useState<string | null>(null);
 
     useEffect(() => {
         setBookings(initialBookings);
@@ -99,6 +101,7 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
     }, [setHeaderAction]);
 
     const handleCancel = async (booking: Booking) => {
+        setCancellingId(booking.id);
         const formData = new FormData();
         formData.append("status", "Cancelled");
         // Also need to pass other required fields if updateBooking replaces object? 
@@ -133,11 +136,14 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
             await updateBooking(booking.id, formData);
         } catch (e) {
             console.error("Cancel failed", e);
+        } finally {
+            setCancellingId(null);
         }
     };
 
     const handleDelete = async () => {
         if (bookingToDelete) {
+            setDeleting(true);
             try {
                 const result = await deleteBooking(bookingToDelete.id);
                 if (result && result.success) {
@@ -153,6 +159,8 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
                 setDeleteOpen(false);
                 setAlertMessage("An unexpected error occurred");
                 setAlertOpen(true);
+            } finally {
+                setDeleting(false);
             }
         }
     };
@@ -264,8 +272,12 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
                                                                 </DropdownMenuItem>
                                                             </Link>
                                                             {booking.status !== "Cancelled" && booking.status !== "Completed" && (
-                                                                <DropdownMenuItem className="text-destructive" onClick={() => handleCancel(booking)}>
-                                                                    <XCircle className="mr-2 h-4 w-4" /> Cancel
+                                                                <DropdownMenuItem className="text-destructive" onClick={() => handleCancel(booking)} disabled={cancellingId === booking.id}>
+                                                                    {cancellingId === booking.id ? (
+                                                                        <span className="flex items-center"><span className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />Cancelling...</span>
+                                                                    ) : (
+                                                                        <><XCircle className="mr-2 h-4 w-4" /> Cancel</>
+                                                                    )}
                                                                 </DropdownMenuItem>
                                                             )}
                                                             <DropdownMenuSeparator />
@@ -341,8 +353,12 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
                                                 </DropdownMenuItem>
                                             </Link>
                                             {booking.status !== "Cancelled" && (
-                                                <DropdownMenuItem className="text-destructive" onClick={() => handleCancel(booking)}>
-                                                    <XCircle className="mr-2 h-4 w-4" /> Cancel
+                                                <DropdownMenuItem className="text-destructive" onClick={() => handleCancel(booking)} disabled={cancellingId === booking.id}>
+                                                    {cancellingId === booking.id ? (
+                                                        <span className="flex items-center"><span className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />Cancelling...</span>
+                                                    ) : (
+                                                        <><XCircle className="mr-2 h-4 w-4" /> Cancel</>
+                                                    )}
                                                 </DropdownMenuItem>
                                             )}
                                         </DropdownMenuContent>
@@ -411,8 +427,8 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
-                        <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+                        <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>Cancel</Button>
+                        <Button variant="destructive" onClick={handleDelete} disabled={deleting}>{deleting ? "Deleting..." : "Delete"}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

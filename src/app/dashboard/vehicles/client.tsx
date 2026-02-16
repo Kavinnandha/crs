@@ -55,6 +55,7 @@ export default function VehiclesClient({ initialVehicles }: VehiclesClientProps)
     const [vehicleToDelete, setVehicleToDelete] = useState<Vehicle | null>(null);
     const [alertOpen, setAlertOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState("");
+    const [deleting, setDeleting] = useState(false);
 
     // Provide the Add button into header
     useEffect(() => {
@@ -99,6 +100,7 @@ export default function VehiclesClient({ initialVehicles }: VehiclesClientProps)
 
     const handleDelete = async () => {
         if (vehicleToDelete) {
+            setDeleting(true);
             try {
                 const result = await deleteVehicle(vehicleToDelete.id);
                 console.log("Delete result:", result);
@@ -120,6 +122,8 @@ export default function VehiclesClient({ initialVehicles }: VehiclesClientProps)
                 setDeleteOpen(false);
                 setAlertMessage("An unexpected error occurred");
                 setAlertOpen(true);
+            } finally {
+                setDeleting(false);
             }
         }
     };
@@ -359,8 +363,8 @@ export default function VehiclesClient({ initialVehicles }: VehiclesClientProps)
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteOpen(false)} className="rounded-xl border-border text-muted-foreground hover:bg-muted shadow-none">Cancel</Button>
-                        <Button variant="destructive" onClick={handleDelete} className="rounded-xl shadow-sm">Delete</Button>
+                        <Button variant="outline" onClick={() => setDeleteOpen(false)} className="rounded-xl border-border text-muted-foreground hover:bg-muted shadow-none" disabled={deleting}>Cancel</Button>
+                        <Button variant="destructive" onClick={handleDelete} className="rounded-xl shadow-sm" disabled={deleting}>{deleting ? "Deleting..." : "Delete"}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

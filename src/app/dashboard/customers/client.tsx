@@ -46,6 +46,7 @@ export default function CustomersClient({ customers }: CustomersClientProps) {
     const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
     const [alertOpen, setAlertOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState("");
+    const [deleting, setDeleting] = useState(false);
 
     const filteredCustomers = useMemo(() => {
         let result = [...customersList];
@@ -79,14 +80,23 @@ export default function CustomersClient({ customers }: CustomersClientProps) {
 
     const handleDelete = async () => {
         if (customerToDelete) {
-            const result = await deleteCustomer(customerToDelete.id);
-            if (result.success) {
+            setDeleting(true);
+            try {
+                const result = await deleteCustomer(customerToDelete.id);
+                if (result.success) {
+                    setDeleteOpen(false);
+                    setCustomerToDelete(null);
+                } else {
+                    setDeleteOpen(false);
+                    setAlertMessage(result.message || "An error occurred.");
+                    setAlertOpen(true);
+                }
+            } catch (error) {
                 setDeleteOpen(false);
-                setCustomerToDelete(null);
-            } else {
-                setDeleteOpen(false); // Close the confirmation dialog
-                setAlertMessage(result.message || "An error occurred.");
-                setAlertOpen(true); // Open the alert dialog
+                setAlertMessage("An unexpected error occurred");
+                setAlertOpen(true);
+            } finally {
+                setDeleting(false);
             }
         }
     };
@@ -332,8 +342,8 @@ export default function CustomersClient({ customers }: CustomersClientProps) {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteOpen(false)} className="rounded-xl border-border text-muted-foreground hover:bg-muted shadow-none">Cancel</Button>
-                        <Button variant="destructive" onClick={handleDelete} className="rounded-xl shadow-sm">Delete</Button>
+                        <Button variant="outline" onClick={() => setDeleteOpen(false)} className="rounded-xl border-border text-muted-foreground hover:bg-muted shadow-none" disabled={deleting}>Cancel</Button>
+                        <Button variant="destructive" onClick={handleDelete} className="rounded-xl shadow-sm" disabled={deleting}>{deleting ? "Deleting..." : "Delete"}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
