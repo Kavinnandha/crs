@@ -45,6 +45,10 @@ export interface Customer {
   drivingLicenseNumber: string;
   verificationStatus: VerificationStatus;
   address: string;
+  aadharImageUrl?: string;
+  aadharImagePublicId?: string;
+  drivingLicenseImageUrl?: string;
+  drivingLicenseImagePublicId?: string;
   createdAt: string;
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,18 +9,69 @@ import { Label } from "@/components/ui/label";
 import { createCustomer, updateCustomer } from "@/lib/actions";
 import { Customer } from "@/types";
 import { useRouter } from "next/navigation";
+import { ImageUpload } from "./image-upload";
 
 export function CustomerForm({ customer }: { customer?: Customer }) {
     const router = useRouter();
     const isEdit = !!customer;
 
+    const [aadharImage, setAadharImage] = useState<{ url: string; publicId: string } | null>(
+        customer?.aadharImageUrl
+            ? { url: customer.aadharImageUrl, publicId: customer.aadharImagePublicId || "" }
+            : null
+    );
+    const [drivingLicenseImage, setDrivingLicenseImage] = useState<{ url: string; publicId: string } | null>(
+        customer?.drivingLicenseImageUrl
+            ? { url: customer.drivingLicenseImageUrl, publicId: customer.drivingLicenseImagePublicId || "" }
+            : null
+    );
+
     async function handleSubmit(formData: FormData) {
+        // Append image data to form
+        if (aadharImage) {
+            formData.set("aadharImageUrl", aadharImage.url);
+            formData.set("aadharImagePublicId", aadharImage.publicId);
+        } else {
+            formData.set("aadharImageUrl", "");
+            formData.set("aadharImagePublicId", "");
+        }
+
+        if (drivingLicenseImage) {
+            formData.set("drivingLicenseImageUrl", drivingLicenseImage.url);
+            formData.set("drivingLicenseImagePublicId", drivingLicenseImage.publicId);
+        } else {
+            formData.set("drivingLicenseImageUrl", "");
+            formData.set("drivingLicenseImagePublicId", "");
+        }
+
         if (isEdit && customer) {
             await updateCustomer(customer.id, formData);
         } else {
             await createCustomer(formData);
         }
     }
+
+    const handleRemoveAadhar = async () => {
+        if (aadharImage?.publicId) {
+            await fetch("/api/upload", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ publicId: aadharImage.publicId }),
+            });
+        }
+        setAadharImage(null);
+    };
+
+    const handleRemoveLicense = async () => {
+        if (drivingLicenseImage?.publicId) {
+            await fetch("/api/upload", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ publicId: drivingLicenseImage.publicId }),
+            });
+        }
+        setDrivingLicenseImage(null);
+    };
 
     return (
         <form action={handleSubmit} className="space-y-6 max-w-2xl mx-auto bg-card p-8 rounded-2xl border border-border shadow-sm">
@@ -56,6 +108,29 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
                             <SelectItem value="Rejected">Rejected</SelectItem>
                         </SelectContent>
                     </Select>
+                </div>
+            </div>
+
+            {/* Document Upload Section */}
+            <div className="space-y-4 pt-2">
+                <h3 className="text-base font-semibold text-[#1a1d2e] dark:text-white">
+                    Identity Documents
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <ImageUpload
+                        label="Aadhar Card"
+                        currentImageUrl={aadharImage?.url}
+                        currentPublicId={aadharImage?.publicId}
+                        onUploadComplete={(url, publicId) => setAadharImage({ url, publicId })}
+                        onRemove={handleRemoveAadhar}
+                    />
+                    <ImageUpload
+                        label="Driving License"
+                        currentImageUrl={drivingLicenseImage?.url}
+                        currentPublicId={drivingLicenseImage?.publicId}
+                        onUploadComplete={(url, publicId) => setDrivingLicenseImage({ url, publicId })}
+                        onRemove={handleRemoveLicense}
+                    />
                 </div>
             </div>
 

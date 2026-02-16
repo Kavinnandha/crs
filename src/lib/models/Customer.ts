@@ -9,6 +9,10 @@ export interface ICustomer extends Document {
     verificationStatus: string;
     address: string;
     id: string;
+    aadharImageUrl?: string;
+    aadharImagePublicId?: string;
+    drivingLicenseImageUrl?: string;
+    drivingLicenseImagePublicId?: string;
 }
 
 const customerSchema = new Schema<ICustomer>(
@@ -20,6 +24,10 @@ const customerSchema = new Schema<ICustomer>(
         drivingLicenseNumber: { type: String, required: true },
         verificationStatus: { type: String, default: 'Pending' },
         address: { type: String },
+        aadharImageUrl: { type: String },
+        aadharImagePublicId: { type: String },
+        drivingLicenseImageUrl: { type: String },
+        drivingLicenseImagePublicId: { type: String },
     },
     { timestamps: true }
 );

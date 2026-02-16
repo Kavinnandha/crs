@@ -8,6 +8,7 @@ import Booking from "@/lib/models/Booking";
 import Payment from "@/lib/models/Payment";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { deleteFromCloudinary } from "@/lib/cloudinary";
 
 // --- Vehicles ---
 
@@ -98,7 +99,7 @@ export async function deleteVehicle(id: string) {
 export async function createCustomer(formData: FormData) {
     await dbConnect();
 
-    const data = {
+    const data: Record<string, unknown> = {
         id: `c${Date.now()}`,
         name: formData.get("name") as string,
         email: formData.get("email") as string,
@@ -108,6 +109,21 @@ export async function createCustomer(formData: FormData) {
         verificationStatus: (formData.get("verificationStatus") as string) || "Pending",
         createdAt: new Date().toISOString()
     };
+
+    // Image fields
+    const aadharUrl = formData.get("aadharImageUrl") as string;
+    const aadharPublicId = formData.get("aadharImagePublicId") as string;
+    const licenseUrl = formData.get("drivingLicenseImageUrl") as string;
+    const licensePublicId = formData.get("drivingLicenseImagePublicId") as string;
+
+    if (aadharUrl) {
+        data.aadharImageUrl = aadharUrl;
+        data.aadharImagePublicId = aadharPublicId;
+    }
+    if (licenseUrl) {
+        data.drivingLicenseImageUrl = licenseUrl;
+        data.drivingLicenseImagePublicId = licensePublicId;
+    }
 
     try {
         await Customer.create(data);
@@ -123,7 +139,7 @@ export async function createCustomer(formData: FormData) {
 export async function updateCustomer(id: string, formData: FormData) {
     await dbConnect();
 
-    const data = {
+    const data: Record<string, unknown> = {
         name: formData.get("name") as string,
         email: formData.get("email") as string,
         phone: formData.get("phone") as string,
@@ -131,6 +147,47 @@ export async function updateCustomer(id: string, formData: FormData) {
         drivingLicenseNumber: formData.get("drivingLicenseNumber") as string,
         verificationStatus: formData.get("verificationStatus") as string,
     };
+
+    // Handle image fields
+    const aadharUrl = formData.get("aadharImageUrl") as string;
+    const aadharPublicId = formData.get("aadharImagePublicId") as string;
+    const licenseUrl = formData.get("drivingLicenseImageUrl") as string;
+    const licensePublicId = formData.get("drivingLicenseImagePublicId") as string;
+
+    // Get existing customer to check for old images to clean up
+    const existingCustomer = await Customer.findOne({ id });
+
+    // Update aadhar image fields
+    if (aadharUrl) {
+        // If there's a new image and old one exists with different publicId, delete old
+        if (existingCustomer?.aadharImagePublicId && existingCustomer.aadharImagePublicId !== aadharPublicId) {
+            await deleteFromCloudinary(existingCustomer.aadharImagePublicId);
+        }
+        data.aadharImageUrl = aadharUrl;
+        data.aadharImagePublicId = aadharPublicId;
+    } else {
+        // Image was removed
+        if (existingCustomer?.aadharImagePublicId) {
+            await deleteFromCloudinary(existingCustomer.aadharImagePublicId);
+        }
+        data.aadharImageUrl = "";
+        data.aadharImagePublicId = "";
+    }
+
+    // Update driving license image fields
+    if (licenseUrl) {
+        if (existingCustomer?.drivingLicenseImagePublicId && existingCustomer.drivingLicenseImagePublicId !== licensePublicId) {
+            await deleteFromCloudinary(existingCustomer.drivingLicenseImagePublicId);
+        }
+        data.drivingLicenseImageUrl = licenseUrl;
+        data.drivingLicenseImagePublicId = licensePublicId;
+    } else {
+        if (existingCustomer?.drivingLicenseImagePublicId) {
+            await deleteFromCloudinary(existingCustomer.drivingLicenseImagePublicId);
+        }
+        data.drivingLicenseImageUrl = "";
+        data.drivingLicenseImagePublicId = "";
+    }
 
     try {
         await Customer.updateOne({ id }, data);
@@ -152,6 +209,17 @@ export async function deleteCustomer(id: string) {
     }
 
     try {
+        // Find customer to get image public IDs before deletion
+        const customer = await Customer.findOne({ id });
+
+        // Delete images from Cloudinary
+        if (customer?.aadharImagePublicId) {
+            await deleteFromCloudinary(customer.aadharImagePublicId);
+        }
+        if (customer?.drivingLicenseImagePublicId) {
+            await deleteFromCloudinary(customer.drivingLicenseImagePublicId);
+        }
+
         await Customer.deleteOne({ id });
         revalidatePath("/dashboard/customers");
     } catch (error) {

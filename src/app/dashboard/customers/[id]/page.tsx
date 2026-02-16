@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Pencil, ArrowLeft, Mail, Phone, MapPin, CreditCard, CalendarDays } from "lucide-react";
+import { Pencil, ArrowLeft, Mail, Phone, MapPin, CreditCard, CalendarDays, FileText } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ImageViewer } from "@/components/ui/image-viewer";
 
 export default async function CustomerDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -88,6 +89,42 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Identity Documents */}
+                {(customer.aadharImageUrl || customer.drivingLicenseImageUrl) && (
+                    <Card className="lg:col-span-3 shadow-sm border-[#E8E5F0] dark:border-slate-800">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <FileText className="h-5 w-5 text-[#7C3AED]" />
+                                Identity Documents
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {customer.aadharImageUrl && (
+                                    <div className="space-y-2">
+                                        <p className="text-sm font-medium text-[#64748B] dark:text-slate-400">Aadhar Card</p>
+                                        <ImageViewer
+                                            src={customer.aadharImageUrl}
+                                            alt="Aadhar Card"
+                                            className="h-52 w-full"
+                                        />
+                                    </div>
+                                )}
+                                {customer.drivingLicenseImageUrl && (
+                                    <div className="space-y-2">
+                                        <p className="text-sm font-medium text-[#64748B] dark:text-slate-400">Driving License</p>
+                                        <ImageViewer
+                                            src={customer.drivingLicenseImageUrl}
+                                            alt="Driving License"
+                                            className="h-52 w-full"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Rental History */}
                 <Card className="lg:col-span-2 shadow-sm border-[#E8E5F0] dark:border-slate-800 h-fit">
