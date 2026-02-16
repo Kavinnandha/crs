@@ -109,10 +109,8 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
                     if (path) {
                         formData.append(fieldName, path);
                         return true;
-                    } else {
-                        setUploading(false);
-                        return false;
                     }
+                    return false;
                 } else if (existingPath) {
                     formData.append(fieldName, existingPath);
                 }
@@ -140,9 +138,12 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
             } else {
                 await createCustomer(formData);
             }
+            // Note: createCustomer/updateCustomer redirect on success, so component unmounts
         } catch (error) {
             console.error('Form submission error:', error);
             toast.error('Failed to save customer');
+        } finally {
+            // Reset uploading state in all cases (success redirects, so this mainly handles errors)
             setUploading(false);
         }
     }

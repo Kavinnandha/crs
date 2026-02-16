@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
+import { randomBytes } from 'crypto';
 import path from 'path';
 
 const MAX_FILE_SIZE = 1024 * 1024; // 1MB
@@ -36,9 +37,9 @@ export async function POST(request: NextRequest) {
         // Extract and validate file extension based on MIME type
         const extension = file.type === 'image/png' ? '.png' : '.jpg';
 
-        // Create safe filename using only timestamp
+        // Create safe filename using timestamp and cryptographically secure random suffix
         const timestamp = Date.now();
-        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const randomSuffix = randomBytes(3).toString('hex'); // 6 hex characters
         const filename = `${timestamp}_${randomSuffix}${extension}`;
 
         // Get file buffer
