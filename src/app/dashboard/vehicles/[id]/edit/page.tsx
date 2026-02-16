@@ -3,22 +3,31 @@ import { VehicleForm } from "@/components/vehicles/vehicle-form";
 import { getVehicleById } from "@/lib/data";
 import { notFound } from "next/navigation";
 
-export default async function EditVehiclePage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const vehicle = await getVehicleById(id);
+export default async function EditVehiclePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const vehicle = await getVehicleById(id);
 
-    if (!vehicle) {
-        notFound();
-    }
+  if (!vehicle) {
+    notFound();
+  }
 
-    return (
-        <div className="max-w-4xl mx-auto">
-            <PageHeader
-                title="Edit Vehicle"
-                description={`Update details for ${vehicle.brand} ${vehicle.model}`}
-                breadcrumb={["Dashboard", "Vehicles", vehicle.brand + " " + vehicle.model, "Edit"]}
-            />
-            <VehicleForm vehicle={vehicle} />
-        </div>
-    );
+  return (
+    <div className="max-w-4xl mx-auto">
+      <PageHeader
+        title="Edit Vehicle"
+        description={`Update details for ${vehicle.brand} ${vehicle.model}`}
+        breadcrumb={[
+          "Dashboard",
+          "Vehicles",
+          vehicle.brand + " " + vehicle.model,
+          "Edit",
+        ]}
+      />
+      <VehicleForm vehicle={vehicle} />
+    </div>
+  );
 }

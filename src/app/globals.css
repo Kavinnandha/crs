@@ -7,8 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'SF Mono', 'Fira Code', monospace;
+  --font-sans:
+    var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -75,51 +76,53 @@
 :root {
   --radius: 0.75rem;
   /* AdFlux-style: soft off-white background */
-  --background: #F8F9FC;
+  --background: #f8f9fc;
   --foreground: #1a1d2e;
   /* Clean white cards */
-  --card: #FFFFFF;
+  --card: #ffffff;
   --card-foreground: #1a1d2e;
-  --popover: #FFFFFF;
+  --popover: #ffffff;
   --popover-foreground: #1a1d2e;
   /* Soft lavender/purple primary */
-  --primary: #7C3AED;
-  --primary-foreground: #FFFFFF;
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
   /* Muted secondary */
-  --secondary: #F1F0FB;
+  --secondary: #f1f0fb;
   --secondary-foreground: #4a4a68;
   /* Light gray muted */
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
   /* Soft accent */
-  --accent: #F5F3FF;
-  --accent-foreground: #7C3AED;
+  --accent: #f5f3ff;
+  --accent-foreground: #7c3aed;
   /* Destructive */
-  --destructive: #EF4444;
+  --destructive: #ef4444;
   /* Borders: very light gray */
-  --border: #E8E5F0;
-  --input: #E8E5F0;
-  --ring: #7C3AED;
+  --border: #e8e5f0;
+  --input: #e8e5f0;
+  --ring: #7c3aed;
   /* Charts: pastel palette */
-  --chart-1: #7C3AED;
-  --chart-2: #06B6D4;
-  --chart-3: #F59E0B;
-  --chart-4: #EC4899;
-  --chart-5: #10B981;
+  --chart-1: #7c3aed;
+  --chart-2: #06b6d4;
+  --chart-3: #f59e0b;
+  --chart-4: #ec4899;
+  --chart-5: #10b981;
   /* Sidebar: same light background */
-  --sidebar: #FFFFFF;
+  --sidebar: #ffffff;
   --sidebar-foreground: #4a4a68;
-  --sidebar-primary: #7C3AED;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F5F3FF;
-  --sidebar-accent-foreground: #7C3AED;
-  --sidebar-border: #E8E5F0;
-  --sidebar-ring: #7C3AED;
-  --destructive-foreground: #FFFFFF;
-  --font-sans: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-serif: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'SF Mono', 'Fira Code', monospace;
-  --shadow-color: #7C3AED;
+  --sidebar-primary: #7c3aed;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f3ff;
+  --sidebar-accent-foreground: #7c3aed;
+  --sidebar-border: #e8e5f0;
+  --sidebar-ring: #7c3aed;
+  --destructive-foreground: #ffffff;
+  --font-sans:
+    var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif:
+    var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", monospace;
+  --shadow-color: #7c3aed;
   --shadow-opacity: 0.04;
   --shadow-blur: 0px;
   --shadow-spread: 0px;
@@ -129,11 +132,15 @@
   --spacing: 0.25rem;
   --shadow-2xs: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  --shadow-sm:
+    0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
   --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.06);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.06);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.06);
+  --shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.06);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
   --tracking-normal: -0.011em;
 }
@@ -145,8 +152,8 @@
   --card-foreground: #f8fafc;
   --popover: #020817;
   --popover-foreground: #f8fafc;
-  --primary: #7C3AED;
-  --primary-foreground: #FFFFFF;
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
   --secondary: #1e293b;
   --secondary-foreground: #f8fafc;
   --muted: #1e293b;
@@ -157,24 +164,26 @@
   --destructive-foreground: #f8fafc;
   --border: #1e293b;
   --input: #1e293b;
-  --ring: #7C3AED;
-  --chart-1: #7C3AED;
+  --ring: #7c3aed;
+  --chart-1: #7c3aed;
   --chart-2: #22d3ee;
   --chart-3: #fbbf24;
   --chart-4: #f472b6;
   --chart-5: #34d399;
   --sidebar: #020817;
   --sidebar-foreground: #f8fafc;
-  --sidebar-primary: #7C3AED;
-  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-primary: #7c3aed;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1e293b;
   --sidebar-accent-foreground: #f8fafc;
   --sidebar-border: #1e293b;
-  --sidebar-ring: #7C3AED;
+  --sidebar-ring: #7c3aed;
   --radius: 0.75rem;
-  --font-sans: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-serif: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'SF Mono', 'Fira Code', monospace;
+  --font-sans:
+    var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif:
+    var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", monospace;
   --shadow-color: #000;
   --shadow-opacity: 0.3;
   --shadow-blur: 0px;
@@ -185,11 +194,15 @@
   --spacing: 0.25rem;
   --shadow-2xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-sm:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
   --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 2px -1px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+  --shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
 }
 

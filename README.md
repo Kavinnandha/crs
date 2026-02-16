@@ -33,12 +33,14 @@ A modern, full-stack car rental management system built with Next.js, MongoDB, a
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone <repository-url>
    cd crs
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    # or
@@ -47,13 +49,15 @@ A modern, full-stack car rental management system built with Next.js, MongoDB, a
 
 3. Set up environment variables:
    Copy `.env.example` to `.env` and fill in the required values.
+
    ```bash
    cp .env.example .env
    ```
-   
+
    Update `MONGODB_URI` and `AUTH_SECRET` in `.env`.
 
 4. Run the development server:
+
    ```bash
    npm run dev
    ```
