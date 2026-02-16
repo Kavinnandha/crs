@@ -43,4 +43,6 @@ next-env.d.ts
 
 # uploaded files
 /public/uploads/
+
+# package-lock.json - project uses pnpm (pnpm-lock.yaml is tracked)
 package-lock.json

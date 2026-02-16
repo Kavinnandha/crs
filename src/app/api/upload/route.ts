@@ -33,11 +33,18 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Extract and validate file extension based on MIME type
+        let extension = '.jpg';
+        if (file.type === 'image/png') {
+            extension = '.png';
+        } else if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+            extension = '.jpg';
+        }
+
         // Create unique filename
         const timestamp = Date.now();
-        const originalName = file.name.replace(/[^a-zA-Z0-9_-]/g, '_');
-        const extension = path.extname(file.name).toLowerCase();
-        const filename = `${timestamp}_${originalName.substring(0, 50)}${extension}`;
+        const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const filename = `${timestamp}_${baseName.substring(0, 50)}${extension}`;
 
         // Get file buffer
         const bytes = await file.arrayBuffer();
