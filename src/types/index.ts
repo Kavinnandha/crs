@@ -43,6 +43,8 @@ export interface Customer {
   phone: string;
   email: string;
   drivingLicenseNumber: string;
+  drivingLicenseImage?: string;
+  aadhaarCardImage?: string;
   verificationStatus: VerificationStatus;
   address: string;
   createdAt: string;

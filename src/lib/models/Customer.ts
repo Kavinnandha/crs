@@ -6,6 +6,8 @@ export interface ICustomer extends Document {
     phone: string;
     email: string;
     drivingLicenseNumber: string;
+    drivingLicenseImage?: string;
+    aadhaarCardImage?: string;
     verificationStatus: string;
     address: string;
     id: string;
@@ -18,6 +20,8 @@ const customerSchema = new Schema<ICustomer>(
         phone: { type: String, required: true },
         email: { type: String, required: true, unique: true },
         drivingLicenseNumber: { type: String, required: true },
+        drivingLicenseImage: { type: String },
+        aadhaarCardImage: { type: String },
         verificationStatus: { type: String, default: 'Pending' },
         address: { type: String },
     },

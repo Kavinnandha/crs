@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Pencil, ArrowLeft, Mail, Phone, MapPin, CreditCard, CalendarDays } from "lucide-react";
+import { Pencil, ArrowLeft, Mail, Phone, MapPin, CreditCard, CalendarDays, FileImage } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default async function CustomerDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -89,8 +90,99 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
                     </CardContent>
                 </Card>
 
+                {/* Documents Card */}
+                <Card className="lg:col-span-2 shadow-sm border-[#E8E5F0] dark:border-slate-800">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <FileImage className="h-5 w-5 text-[#7C3AED]" />
+                            Uploaded Documents
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Driving License */}
+                            <div className="space-y-3">
+                                <h3 className="font-semibold text-sm text-[#1a1d2e] dark:text-white">Driving License</h3>
+                                {customer.drivingLicenseImage ? (
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <div className="relative group cursor-pointer rounded-lg overflow-hidden border-2 border-[#E8E5F0] dark:border-slate-700 hover:border-[#7C3AED] transition-colors">
+                                                <img
+                                                    src={customer.drivingLicenseImage}
+                                                    alt="Driving License"
+                                                    className="w-full h-48 object-cover"
+                                                />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <span className="text-white font-medium">Click to view</span>
+                                                </div>
+                                            </div>
+                                        </DialogTrigger>
+                                        <DialogContent className="max-w-4xl">
+                                            <DialogHeader>
+                                                <DialogTitle>Driving License</DialogTitle>
+                                            </DialogHeader>
+                                            <img
+                                                src={customer.drivingLicenseImage}
+                                                alt="Driving License"
+                                                className="w-full h-auto rounded-lg"
+                                            />
+                                        </DialogContent>
+                                    </Dialog>
+                                ) : (
+                                    <div className="flex items-center justify-center h-48 border-2 border-dashed border-[#E8E5F0] dark:border-slate-700 rounded-lg bg-[#F8F9FC] dark:bg-slate-800/30">
+                                        <div className="text-center">
+                                            <FileImage className="h-10 w-10 text-[#94a3b8] mx-auto mb-2" />
+                                            <p className="text-sm text-[#94a3b8]">No image uploaded</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Aadhaar Card */}
+                            <div className="space-y-3">
+                                <h3 className="font-semibold text-sm text-[#1a1d2e] dark:text-white">Aadhaar Card</h3>
+                                {customer.aadhaarCardImage ? (
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <div className="relative group cursor-pointer rounded-lg overflow-hidden border-2 border-[#E8E5F0] dark:border-slate-700 hover:border-[#7C3AED] transition-colors">
+                                                <img
+                                                    src={customer.aadhaarCardImage}
+                                                    alt="Aadhaar Card"
+                                                    className="w-full h-48 object-cover"
+                                                />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <span className="text-white font-medium">Click to view</span>
+                                                </div>
+                                            </div>
+                                        </DialogTrigger>
+                                        <DialogContent className="max-w-4xl">
+                                            <DialogHeader>
+                                                <DialogTitle>Aadhaar Card</DialogTitle>
+                                            </DialogHeader>
+                                            <img
+                                                src={customer.aadhaarCardImage}
+                                                alt="Aadhaar Card"
+                                                className="w-full h-auto rounded-lg"
+                                            />
+                                        </DialogContent>
+                                    </Dialog>
+                                ) : (
+                                    <div className="flex items-center justify-center h-48 border-2 border-dashed border-[#E8E5F0] dark:border-slate-700 rounded-lg bg-[#F8F9FC] dark:bg-slate-800/30">
+                                        <div className="text-center">
+                                            <FileImage className="h-10 w-10 text-[#94a3b8] mx-auto mb-2" />
+                                            <p className="text-sm text-[#94a3b8]">No image uploaded</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
                 {/* Rental History */}
-                <Card className="lg:col-span-2 shadow-sm border-[#E8E5F0] dark:border-slate-800 h-fit">
+                <Card className="shadow-sm border-[#E8E5F0] dark:border-slate-800 h-fit">
                     <CardHeader>
                         <CardTitle>Rental History</CardTitle>
                     </CardHeader>

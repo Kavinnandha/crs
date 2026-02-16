@@ -105,6 +105,8 @@ export async function createCustomer(formData: FormData) {
         phone: formData.get("phone") as string,
         address: formData.get("address") as string,
         drivingLicenseNumber: formData.get("drivingLicenseNumber") as string,
+        drivingLicenseImage: formData.get("drivingLicenseImage") as string || undefined,
+        aadhaarCardImage: formData.get("aadhaarCardImage") as string || undefined,
         verificationStatus: (formData.get("verificationStatus") as string) || "Pending",
         createdAt: new Date().toISOString()
     };
@@ -129,6 +131,8 @@ export async function updateCustomer(id: string, formData: FormData) {
         phone: formData.get("phone") as string,
         address: formData.get("address") as string,
         drivingLicenseNumber: formData.get("drivingLicenseNumber") as string,
+        drivingLicenseImage: formData.get("drivingLicenseImage") as string || undefined,
+        aadhaarCardImage: formData.get("aadhaarCardImage") as string || undefined,
         verificationStatus: formData.get("verificationStatus") as string,
     };
 
