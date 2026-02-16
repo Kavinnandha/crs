@@ -26,6 +26,11 @@ export async function createVehicle(formData: FormData) {
         transmission: formData.get("transmission") as string,
         status: (formData.get("status") as string) || "Available",
         pricePerDay: Number(formData.get("pricePerDay")),
+        rates: {
+            daily: Number(formData.get("pricePerDay")),
+            hourly: 0,
+            weekly: 0
+        },
         color: formData.get("color") as string,
         mileage: Number(formData.get("mileage") || 0),
         imageUrl: "/vehicles/placeholder.jpg",
@@ -56,6 +61,11 @@ export async function updateVehicle(id: string, formData: FormData) {
         transmission: formData.get("transmission") as string,
         status: formData.get("status") as string,
         pricePerDay: Number(formData.get("pricePerDay")),
+        rates: {
+            daily: Number(formData.get("pricePerDay")),
+            hourly: 0,
+            weekly: 0
+        },
         color: formData.get("color") as string,
         mileage: Number(formData.get("mileage") || 0),
     };
