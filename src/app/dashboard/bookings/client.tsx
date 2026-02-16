@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
     Plus, MoreHorizontal,
     Eye, XCircle, LayoutGrid, List, User, Pencil, Trash2
@@ -35,7 +35,7 @@ interface BookingsClientProps {
 }
 
 export default function BookingsClient({ initialBookings, customers, vehicles }: BookingsClientProps) {
-    const { setHeaderAction } = useDashboard();
+    const { setHeaderAction, searchTerm } = useDashboard();
     const [bookings, setBookings] = useState<Booking[]>(initialBookings);
     const [statusFilter, setStatusFilter] = useState("all");
     const [viewMode, setViewMode] = useState<"table" | "card">("table");
@@ -47,6 +47,8 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
     // Delete Dialog
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [bookingToDelete, setBookingToDelete] = useState<Booking | null>(null);
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("");
 
     useEffect(() => {
         setBookings(initialBookings);
@@ -55,19 +57,32 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
     const vehicleMap = useMemo(() => new Map(vehicles.map(v => [v.id, v])), [vehicles]);
     const customerMap = useMemo(() => new Map(customers.map(c => [c.id, c])), [customers]);
 
-    const getCustomerById = (id: string) => customerMap.get(id);
-    const getVehicleById = (id: string) => vehicleMap.get(id);
+    const getCustomerById = useCallback((id: string) => customerMap.get(id), [customerMap]);
+    const getVehicleById = useCallback((id: string) => vehicleMap.get(id), [vehicleMap]);
 
     const filteredBookings = useMemo(() => {
         let result = [...bookings];
-        /* Search logic removed as search state is removed */
+
+        if (searchTerm) {
+            const q = searchTerm.toLowerCase();
+            result = result.filter(b => {
+                const customer = getCustomerById(b.customerId);
+                const vehicle = getVehicleById(b.vehicleId);
+                return (
+                    b.id.toLowerCase().includes(q) ||
+                    (customer?.name || "").toLowerCase().includes(q) ||
+                    (vehicle ? `${vehicle.brand} ${vehicle.model}` : "").toLowerCase().includes(q)
+                );
+            });
+        }
+
         if (statusFilter !== "all") {
             result = result.filter((b) => b.status === statusFilter);
         }
         return result.sort(
             (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-    }, [bookings, statusFilter]);
+    }, [bookings, statusFilter, searchTerm, getCustomerById, getVehicleById]);
 
     // Inject action button into navbar
     useEffect(() => {
@@ -124,11 +139,20 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
     const handleDelete = async () => {
         if (bookingToDelete) {
             try {
-                await deleteBooking(bookingToDelete.id);
-                setDeleteOpen(false);
-                setBookingToDelete(null);
+                const result = await deleteBooking(bookingToDelete.id);
+                if (result && result.success) {
+                    setDeleteOpen(false);
+                    setBookingToDelete(null);
+                } else {
+                    setDeleteOpen(false);
+                    setAlertMessage(result?.message || "Failed to delete booking");
+                    setAlertOpen(true);
+                }
             } catch (e) {
                 console.error("Delete failed", e);
+                setDeleteOpen(false);
+                setAlertMessage("An unexpected error occurred");
+                setAlertOpen(true);
             }
         }
     };
@@ -377,6 +401,7 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
             </Dialog>
 
             {/* Delete Dialog */}
+            {/* Delete Dialog */}
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
                 <DialogContent className="max-w-sm rounded-2xl border-[#E8E5F0] dark:border-slate-800 shadow-xl">
                     <DialogHeader>
@@ -388,6 +413,22 @@ export default function BookingsClient({ initialBookings, customers, vehicles }:
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
                         <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={alertOpen} onOpenChange={setAlertOpen}>
+                <DialogContent className="max-w-m rounded-2xl border-border shadow-xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-[#1a1d2e] dark:text-white text-lg font-semibold flex items-center gap-2">
+                            <span className="text-amber-500">⚠️</span> Cannot Delete Booking
+                        </DialogTitle>
+                        <DialogDescription className="text-[#64748B] text-base pt-2">
+                            {alertMessage}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button onClick={() => setAlertOpen(false)} className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white">Okay</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
     Plus, AlertTriangle, Calendar, MoreHorizontal, Pencil, Trash2
 } from "lucide-react";
@@ -38,7 +38,7 @@ interface MaintenanceClientProps {
 }
 
 export default function MaintenanceClient({ initialRecords, vehicles }: MaintenanceClientProps) {
-    const { setHeaderAction } = useDashboard();
+    const { setHeaderAction, searchTerm } = useDashboard();
     const [records, setRecords] = useState<MaintenanceRecord[]>(initialRecords);
     const [serviceFilter, setServiceFilter] = useState("all");
     const [currentTime] = useState(() => Date.now());
@@ -46,6 +46,8 @@ export default function MaintenanceClient({ initialRecords, vehicles }: Maintena
     // Delete state
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [recordToDelete, setRecordToDelete] = useState<MaintenanceRecord | null>(null);
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("");
 
     // Sync records if initialRecords updates
     useEffect(() => {
@@ -53,9 +55,9 @@ export default function MaintenanceClient({ initialRecords, vehicles }: Maintena
     }, [initialRecords]);
 
     // Helper to get vehicle details
-    const getVehicleDetails = (vehicleId: string) => {
+    const getVehicleDetails = useCallback((vehicleId: string) => {
         return vehicles.find(v => v.id === vehicleId);
-    };
+    }, [vehicles]);
 
     // Inject action button into navbar
     useEffect(() => {
@@ -73,12 +75,25 @@ export default function MaintenanceClient({ initialRecords, vehicles }: Maintena
 
     const filteredRecords = useMemo(() => {
         let result = [...records];
-        // Search logic removed as search state is removed
+
+        if (searchTerm) {
+            const q = searchTerm.toLowerCase();
+            result = result.filter(r => {
+                const vehicle = getVehicleDetails(r.vehicleId);
+                return (
+                    r.serviceType.toLowerCase().includes(q) ||
+                    r.vendor.toLowerCase().includes(q) ||
+                    r.description.toLowerCase().includes(q) ||
+                    (vehicle ? `${vehicle.brand} ${vehicle.model}` : "").toLowerCase().includes(q)
+                );
+            });
+        }
+
         if (serviceFilter !== "all") {
             result = result.filter((r) => r.serviceType === serviceFilter);
         }
         return result.sort((a, b) => new Date(b.serviceDate).getTime() - new Date(a.serviceDate).getTime());
-    }, [records, serviceFilter]);
+    }, [records, serviceFilter, searchTerm, getVehicleDetails]);
 
     const upcomingServices = records
         .filter((r) => r.nextServiceDate && new Date(r.nextServiceDate).getTime() <= (currentTime + 30 * 86400000))
@@ -89,16 +104,20 @@ export default function MaintenanceClient({ initialRecords, vehicles }: Maintena
     const handleDelete = async () => {
         if (recordToDelete) {
             try {
-                await deleteMaintenance(recordToDelete.id);
-                setDeleteOpen(false);
-                setRecordToDelete(null);
-                // Optimistic update or wait for revalidation (revalidation happens in action)
-                // But since we are client side state locally, we should update local state too or rely on router refresh.
-                // Assuming router refresh happens automatically by Next.js action, but local state might persist if not fully reloaded.
-                // Let's rely on stored state update via useEffect or manual filter.
-                // Revalidation updates the props passed to page, which updates initialRecords, which triggers useEffect.
+                const result = await deleteMaintenance(recordToDelete.id);
+                if (result && result.success) {
+                    setDeleteOpen(false);
+                    setRecordToDelete(null);
+                } else {
+                    setDeleteOpen(false);
+                    setAlertMessage(result?.message || "Failed to delete maintenance record");
+                    setAlertOpen(true);
+                }
             } catch (error) {
                 console.error("Failed to delete", error);
+                setDeleteOpen(false);
+                setAlertMessage("An unexpected error occurred");
+                setAlertOpen(true);
             }
         }
     };
@@ -260,6 +279,22 @@ export default function MaintenanceClient({ initialRecords, vehicles }: Maintena
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setDeleteOpen(false)} className="rounded-xl border-border text-muted-foreground hover:bg-muted shadow-none">Cancel</Button>
                         <Button variant="destructive" onClick={handleDelete} className="rounded-xl shadow-sm">Delete</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={alertOpen} onOpenChange={setAlertOpen}>
+                <DialogContent className="max-w-m rounded-2xl border-border shadow-xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-[#1a1d2e] dark:text-white text-lg font-semibold flex items-center gap-2">
+                            <span className="text-amber-500">⚠️</span> Cannot Delete Record
+                        </DialogTitle>
+                        <DialogDescription className="text-[#64748B] text-base pt-2">
+                            {alertMessage}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button onClick={() => setAlertOpen(false)} className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white">Okay</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

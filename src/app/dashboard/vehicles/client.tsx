@@ -53,6 +53,8 @@ export default function VehiclesClient({ initialVehicles }: VehiclesClientProps)
     // Delete state
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [vehicleToDelete, setVehicleToDelete] = useState<Vehicle | null>(null);
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("");
 
     // Provide the Add button into header
     useEffect(() => {
@@ -97,9 +99,28 @@ export default function VehiclesClient({ initialVehicles }: VehiclesClientProps)
 
     const handleDelete = async () => {
         if (vehicleToDelete) {
-            await deleteVehicle(vehicleToDelete.id);
-            setDeleteOpen(false);
-            setVehicleToDelete(null);
+            try {
+                const result = await deleteVehicle(vehicleToDelete.id);
+                console.log("Delete result:", result);
+                if (result && result.success) {
+                    setDeleteOpen(false);
+                    setVehicleToDelete(null);
+                } else if (result) {
+                    setDeleteOpen(false);
+                    setAlertMessage(result.message || "Failed to delete vehicle");
+                    setAlertOpen(true);
+                } else {
+                    console.error("Delete action returned undefined");
+                    setDeleteOpen(false);
+                    setAlertMessage("An unexpected error occurred (no response from server)");
+                    setAlertOpen(true);
+                }
+            } catch (error) {
+                console.error("Error invoking deleteVehicle:", error);
+                setDeleteOpen(false);
+                setAlertMessage("An unexpected error occurred");
+                setAlertOpen(true);
+            }
         }
     };
 
@@ -340,6 +361,22 @@ export default function VehiclesClient({ initialVehicles }: VehiclesClientProps)
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setDeleteOpen(false)} className="rounded-xl border-border text-muted-foreground hover:bg-muted shadow-none">Cancel</Button>
                         <Button variant="destructive" onClick={handleDelete} className="rounded-xl shadow-sm">Delete</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={alertOpen} onOpenChange={setAlertOpen}>
+                <DialogContent className="max-w-m rounded-2xl border-border shadow-xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-[#1a1d2e] dark:text-white text-lg font-semibold flex items-center gap-2">
+                            <span className="text-amber-500">⚠️</span> Cannot Delete Vehicle
+                        </DialogTitle>
+                        <DialogDescription className="text-[#64748B] text-base pt-2">
+                            {alertMessage}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button onClick={() => setAlertOpen(false)} className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white">Okay</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

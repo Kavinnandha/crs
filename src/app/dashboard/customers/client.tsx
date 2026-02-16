@@ -44,6 +44,8 @@ export default function CustomersClient({ customers }: CustomersClientProps) {
     const [viewMode, setViewMode] = useState<"table" | "card">("card");
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("");
 
     const filteredCustomers = useMemo(() => {
         let result = [...customersList];
@@ -77,9 +79,15 @@ export default function CustomersClient({ customers }: CustomersClientProps) {
 
     const handleDelete = async () => {
         if (customerToDelete) {
-            await deleteCustomer(customerToDelete.id);
-            setDeleteOpen(false);
-            setCustomerToDelete(null);
+            const result = await deleteCustomer(customerToDelete.id);
+            if (result.success) {
+                setDeleteOpen(false);
+                setCustomerToDelete(null);
+            } else {
+                setDeleteOpen(false); // Close the confirmation dialog
+                setAlertMessage(result.message || "An error occurred.");
+                setAlertOpen(true); // Open the alert dialog
+            }
         }
     };
 
@@ -326,6 +334,22 @@ export default function CustomersClient({ customers }: CustomersClientProps) {
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setDeleteOpen(false)} className="rounded-xl border-border text-muted-foreground hover:bg-muted shadow-none">Cancel</Button>
                         <Button variant="destructive" onClick={handleDelete} className="rounded-xl shadow-sm">Delete</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={alertOpen} onOpenChange={setAlertOpen}>
+                <DialogContent className="max-w-m rounded-2xl border-border shadow-xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-[#1a1d2e] dark:text-white text-lg font-semibold flex items-center gap-2">
+                            <span className="text-amber-500">⚠️</span> Cannot Delete Customer
+                        </DialogTitle>
+                        <DialogDescription className="text-[#64748B] text-base pt-2">
+                            {alertMessage}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button onClick={() => setAlertOpen(false)} className="rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white">Okay</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

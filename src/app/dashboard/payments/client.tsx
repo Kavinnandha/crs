@@ -37,7 +37,7 @@ interface PaymentsClientProps {
 }
 
 export default function PaymentsClient({ initialPayments, bookings, customers, vehicles }: PaymentsClientProps) {
-    const { setHeaderAction } = useDashboard();
+    const { setHeaderAction, searchTerm } = useDashboard();
     const [paymentsList, setPaymentsList] = useState<Payment[]>(initialPayments);
     const [statusFilter, setStatusFilter] = useState("all");
     const [modeFilter, setModeFilter] = useState("all");
@@ -64,11 +64,25 @@ export default function PaymentsClient({ initialPayments, bookings, customers, v
 
     const filteredPayments = useMemo(() => {
         let result = [...paymentsList];
-        // Search logic removed as search is unused
+
+        if (searchTerm) {
+            const q = searchTerm.toLowerCase();
+            result = result.filter(p => {
+                const booking = bookingMap.get(p.bookingId);
+                const customer = booking ? customerMap.get(booking.customerId) : undefined;
+                return (
+                    (p.transactionId || "").toLowerCase().includes(q) ||
+                    p.bookingId.toLowerCase().includes(q) ||
+                    (customer?.name || "").toLowerCase().includes(q) ||
+                    p.mode.toLowerCase().includes(q)
+                );
+            });
+        }
+
         if (statusFilter !== "all") result = result.filter((p) => p.status === statusFilter);
         if (modeFilter !== "all") result = result.filter((p) => p.mode === modeFilter);
         return result;
-    }, [statusFilter, modeFilter, paymentsList]);
+    }, [statusFilter, modeFilter, paymentsList, searchTerm, bookingMap, customerMap]);
 
     // Inject action button into navbar
     useEffect(() => {

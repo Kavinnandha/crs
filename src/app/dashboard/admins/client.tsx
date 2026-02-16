@@ -33,7 +33,8 @@ interface AdminsClientProps {
 }
 
 export default function AdminsClient({ admins: initialAdmins }: AdminsClientProps) {
-    const { setHeaderAction } = useDashboard();
+    const { setHeaderAction, searchTerm } = useDashboard();
+    const [originalAdmins, setOriginalAdmins] = useState<Admin[]>(initialAdmins);
     const [admins, setAdmins] = useState<Admin[]>(initialAdmins);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [adminToDelete, setAdminToDelete] = useState<Admin | null>(null);
@@ -41,8 +42,21 @@ export default function AdminsClient({ admins: initialAdmins }: AdminsClientProp
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        setAdmins(initialAdmins);
+        setOriginalAdmins(initialAdmins);
     }, [initialAdmins]);
+
+    useEffect(() => {
+        let result = [...originalAdmins];
+        if (searchTerm) {
+            const q = searchTerm.toLowerCase();
+            result = result.filter(
+                (a) =>
+                    a.name.toLowerCase().includes(q) ||
+                    a.email.toLowerCase().includes(q)
+            );
+        }
+        setAdmins(result);
+    }, [originalAdmins, searchTerm]);
 
     useEffect(() => {
         setHeaderAction(

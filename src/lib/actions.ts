@@ -77,20 +77,33 @@ export async function deleteVehicle(id: string) {
     // Check for constraints
     const bookingCount = await Booking.countDocuments({ vehicleId: id });
     if (bookingCount > 0) {
-        throw new Error(`Cannot delete vehicle. Associated with ${bookingCount} bookings.`);
+        return {
+            success: false,
+            message: `Cannot delete vehicle. Associated with ${bookingCount} bookings.`,
+            dependencyDetails: {
+                associatedBookings: bookingCount
+            }
+        };
     }
 
     const maintenanceCount = await Maintenance.countDocuments({ vehicleId: id });
     if (maintenanceCount > 0) {
-        throw new Error(`Cannot delete vehicle. Associated with ${maintenanceCount} maintenance records.`);
+        return {
+            success: false,
+            message: `Cannot delete vehicle. Associated with ${maintenanceCount} maintenance records.`,
+            dependencyDetails: {
+                associatedMaintenance: maintenanceCount
+            }
+        };
     }
 
     try {
         await Vehicle.deleteOne({ id });
         revalidatePath("/dashboard/vehicles");
+        return { success: true, message: "Vehicle deleted successfully" };
     } catch (error) {
         console.error("Error deleting vehicle:", error);
-        throw new Error("Failed to delete vehicle");
+        return { success: false, message: "Failed to delete vehicle" };
     }
 }
 
@@ -205,7 +218,13 @@ export async function deleteCustomer(id: string) {
 
     const bookingCount = await Booking.countDocuments({ customerId: id });
     if (bookingCount > 0) {
-        throw new Error(`Cannot delete customer. Associated with ${bookingCount} bookings.`);
+        return {
+            success: false,
+            message: `Cannot delete customer. Associated with ${bookingCount} bookings.`,
+            dependencyDetails: {
+                associatedBookings: bookingCount
+            }
+        };
     }
 
     try {
@@ -222,9 +241,10 @@ export async function deleteCustomer(id: string) {
 
         await Customer.deleteOne({ id });
         revalidatePath("/dashboard/customers");
+        return { success: true, message: "Customer deleted successfully" };
     } catch (error) {
         console.error("Error deleting customer:", error);
-        throw new Error("Failed to delete customer");
+        return { success: false, message: "Failed to delete customer" };
     }
 }
 
@@ -287,9 +307,10 @@ export async function deleteMaintenance(id: string) {
     try {
         await Maintenance.deleteOne({ id });
         revalidatePath("/dashboard/maintenance");
+        return { success: true, message: "Maintenance record deleted successfully" };
     } catch (error) {
         console.error("Error deleting maintenance record:", error);
-        throw new Error("Failed to delete maintenance record");
+        return { success: false, message: "Failed to delete maintenance record" };
     }
 }
 
@@ -355,9 +376,10 @@ export async function deleteBooking(id: string) {
 
         await Booking.deleteOne({ id });
         revalidatePath("/dashboard/bookings");
+        return { success: true, message: "Booking and associated payments deleted successfully" };
     } catch (error) {
         console.error("Error deleting booking:", error);
-        throw new Error("Failed to delete booking");
+        return { success: false, message: "Failed to delete booking" };
     }
 }
 
@@ -417,8 +439,9 @@ export async function deletePayment(id: string) {
     try {
         await Payment.deleteOne({ id });
         revalidatePath("/dashboard/payments");
+        return { success: true, message: "Payment deleted successfully" };
     } catch (error) {
         console.error("Error deleting payment:", error);
-        throw new Error("Failed to delete payment");
+        return { success: false, message: "Failed to delete payment" };
     }
 }
