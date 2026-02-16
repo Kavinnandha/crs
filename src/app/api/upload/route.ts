@@ -34,12 +34,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Extract and validate file extension based on MIME type
-        let extension = '.jpg';
-        if (file.type === 'image/png') {
-            extension = '.png';
-        } else if (file.type === 'image/jpeg') {
-            extension = '.jpg';
-        }
+        const extension = file.type === 'image/png' ? '.png' : '.jpg';
 
         // Create safe filename using only timestamp
         const timestamp = Date.now();

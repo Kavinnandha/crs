@@ -38,6 +38,18 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
         return null;
     };
 
+    const readFileAsDataURL = (file: File, callback: (dataURL: string) => void) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const result = reader.result as string;
+            // Validate that result is a proper data URL
+            if (result && result.startsWith('data:image/')) {
+                callback(result);
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'dl' | 'aadhaar') => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -51,26 +63,10 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
 
         if (type === 'dl') {
             setDrivingLicenseFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const result = reader.result as string;
-                // Validate that result is a proper data URL
-                if (result && result.startsWith('data:image/')) {
-                    setDrivingLicensePreview(result);
-                }
-            };
-            reader.readAsDataURL(file);
+            readFileAsDataURL(file, setDrivingLicensePreview);
         } else {
             setAadhaarCardFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const result = reader.result as string;
-                // Validate that result is a proper data URL
-                if (result && result.startsWith('data:image/')) {
-                    setAadhaarCardPreview(result);
-                }
-            };
-            reader.readAsDataURL(file);
+            readFileAsDataURL(file, setAadhaarCardPreview);
         }
     };
 
@@ -102,30 +98,42 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
         setUploading(true);
 
         try {
-            // Upload files if new files are selected
-            if (drivingLicenseFile) {
-                const path = await uploadFile(drivingLicenseFile);
-                if (path) {
-                    formData.append('drivingLicenseImage', path);
-                } else {
-                    setUploading(false);
-                    return;
+            // Helper function to handle file upload or use existing path
+            const handleFileUpload = async (
+                file: File | null,
+                existingPath: string | undefined,
+                fieldName: string
+            ): Promise<boolean> => {
+                if (file) {
+                    const path = await uploadFile(file);
+                    if (path) {
+                        formData.append(fieldName, path);
+                        return true;
+                    } else {
+                        setUploading(false);
+                        return false;
+                    }
+                } else if (existingPath) {
+                    formData.append(fieldName, existingPath);
                 }
-            } else if (customer?.drivingLicenseImage) {
-                formData.append('drivingLicenseImage', customer.drivingLicenseImage);
-            }
+                return true;
+            };
 
-            if (aadhaarCardFile) {
-                const path = await uploadFile(aadhaarCardFile);
-                if (path) {
-                    formData.append('aadhaarCardImage', path);
-                } else {
-                    setUploading(false);
-                    return;
-                }
-            } else if (customer?.aadhaarCardImage) {
-                formData.append('aadhaarCardImage', customer.aadhaarCardImage);
-            }
+            // Upload driving license
+            const dlSuccess = await handleFileUpload(
+                drivingLicenseFile,
+                customer?.drivingLicenseImage,
+                'drivingLicenseImage'
+            );
+            if (!dlSuccess) return;
+
+            // Upload aadhaar card
+            const aadhaarSuccess = await handleFileUpload(
+                aadhaarCardFile,
+                customer?.aadhaarCardImage,
+                'aadhaarCardImage'
+            );
+            if (!aadhaarSuccess) return;
 
             if (isEdit && customer) {
                 await updateCustomer(customer.id, formData);
